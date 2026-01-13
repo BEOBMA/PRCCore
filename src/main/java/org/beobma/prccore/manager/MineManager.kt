@@ -31,6 +31,7 @@ import org.bukkit.entity.minecart.CommandMinecart
 import org.bukkit.inventory.ItemStack
 import org.bukkit.util.Transformation
 import org.joml.AxisAngle4f
+import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.*
 import kotlin.math.ceil
@@ -398,13 +399,7 @@ object MineManager {
         )
         mine.exitBlockUUID = display.uniqueId.toString()
 
-        val marker = createItemDisplay(
-            location, Material.LEATHER_HORSE_ARMOR, 3,
-            Vector3f(1.75f, 1.75f, 1.75f), 0.5, 2.5, 0.5
-        ).apply {
-            billboard = Display.Billboard.VERTICAL
-            brightness = Display.Brightness(15, 15)
-        }
+        val marker = createExitItemDisplay(location.clone().add(0.5, 0.5, 0.5), 3)
         mine.exitBlockMarker = marker.uniqueId.toString()
     }
 
@@ -437,10 +432,7 @@ object MineManager {
                 Vector3f(3.0f, 3.0f, 3.0f), 0.25, 1.8, 0.25
             ).uniqueId.toString()
         }
-        val marker = createItemDisplay(
-            startBlockLocation!!, Material.LEATHER_HORSE_ARMOR, 4,
-            Vector3f(1.75f, 1.75f, 1.75f), 0.2, 5.0, 0.2
-        )
+        val marker = createExitItemDisplay(startBlockLocation!!.clone().add(0.5, 0.5, 0.5), 4)
         marker.billboard = Display.Billboard.VERTICAL
         startBlockMarker = marker.uniqueId.toString()
 
@@ -454,12 +446,7 @@ object MineManager {
         }
 
         exitBlockMarker = exitBlockLocation?.let {
-            val markerDisplay = createItemDisplay(
-                it, Material.LEATHER_HORSE_ARMOR, 3,
-                Vector3f(1.75f, 1.75f, 1.75f), 0.5, 2.5, 0.5
-            )
-            markerDisplay.billboard = Display.Billboard.VERTICAL
-            markerDisplay.brightness = Display.Brightness(15, 15)
+            val markerDisplay = createExitItemDisplay(it.clone().add(0.5, 1.0, 0.5), 3)
             markerDisplay.uniqueId.toString()
         }
 
@@ -635,6 +622,32 @@ object MineManager {
             scale,
             AxisAngle4f(Math.PI.toFloat(), 0f, 1f, 0f)
         )
+        itemDisplay.isInvulnerable = true
+        itemDisplay.setItemStack(itemStack)
+        return itemDisplay
+    }
+
+    private fun createExitItemDisplay(loc: Location, customModelData: Int): ItemDisplay {
+        val itemDisplay = world.spawn(loc, ItemDisplay::class.java)
+        val itemStack = ItemStack(Material.LEATHER_HORSE_ARMOR).apply {
+            itemMeta = itemMeta.apply { setCustomModelData(customModelData) }
+        }
+        itemDisplay.transformation = Transformation(
+            Vector3f(0f, 1.75f, 0f),
+            Quaternionf(0f, 1f, 0f, 0f),
+            Vector3f(1.75f, 1.75f, 1.75f),
+            Quaternionf(0f, 0f, 0f, 1f)
+        )
+        itemDisplay.displayWidth = 0f
+        itemDisplay.displayHeight = 0f
+        itemDisplay.interpolationDuration = 0
+        itemDisplay.teleportDuration = 0
+        itemDisplay.glowColorOverride = Color.fromARGB(255, 255, 255, 255)
+        itemDisplay.billboard = Display.Billboard.VERTICAL
+        itemDisplay.brightness = Display.Brightness(15, 15)
+        itemDisplay.shadowRadius = 0f
+        itemDisplay.shadowStrength = 1f
+        itemDisplay.viewRange = 1f
         itemDisplay.isInvulnerable = true
         itemDisplay.setItemStack(itemStack)
         return itemDisplay
