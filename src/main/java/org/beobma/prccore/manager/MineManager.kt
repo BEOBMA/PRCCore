@@ -31,6 +31,8 @@ import org.bukkit.entity.Player
 import org.bukkit.entity.Zombie
 import org.bukkit.entity.minecart.CommandMinecart
 import org.bukkit.inventory.ItemStack
+import org.bukkit.potion.PotionEffect
+import org.bukkit.potion.PotionEffectType
 import org.bukkit.util.Transformation
 import org.example.hoon.coreframe.api.CoreFrameAPI
 import org.joml.AxisAngle4f
@@ -510,15 +512,25 @@ object MineManager {
         enemys
             .filter { !it.isSpawn && !it.isDead }
             .forEach { enemy ->
-                val entity = world.spawnEntity(enemy.location, EntityType.ZOMBIE) as LivingEntity
+            val entity = world.spawnEntity(enemy.location, EntityType.ZOMBIE) as LivingEntity
 
-                val modelId = if (Random.nextBoolean()) spaceModel else normalModel
+            entity.addPotionEffect(
+                PotionEffect(
+                    PotionEffectType.INVISIBILITY,
+                    PotionEffect.INFINITE_DURATION,
+                    0,
+                    false,
+                    false,
+                    false
+                )
+            )
 
-                CoreFrameAPI.Model.applyModel(entity, modelId, entity.location)
+            val modelId = if (Random.nextBoolean()) spaceModel else normalModel
+            CoreFrameAPI.Model.applyModel(entity, modelId, entity.location)
 
-                enemy.isSpawn = true
-                enemy.enemyUUID = entity.uniqueId.toString()
-            }
+            enemy.isSpawn = true
+            enemy.enemyUUID = entity.uniqueId.toString()
+        }
     }
     /** 마커 범위 내에 소환된 엔티티 반환 */
     private fun getMarkerNearbyLocation(location: Location): Entity? {
