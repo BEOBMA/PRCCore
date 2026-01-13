@@ -499,12 +499,26 @@ object MineManager {
 
     /** 적 스폰 실행 */
     fun Mine.spawnEnemysMine() {
-        enemys.filter { !it.isSpawn && !it.isDead }.forEach {
-            val entity = world.spawnEntity(it.location, EntityType.ZOMBIE) as LivingEntity
-            CoreFrameAPI.Model.applyModel(entity, "", entity.location)
-            it.isSpawn = true
-            it.enemyUUID = entity.uniqueId.toString()
+        val cycleFloor = ((floor.coerceAtLeast(1) - 1) % 15) + 1
+
+        val (normalModel, spaceModel) = when (cycleFloor) {
+            in 1..5   -> "rock_zombie" to "sapce_rock"
+            in 6..10  -> "rock_zombie_magma" to "sapce_magma"
+            else      -> "rock_zombie_nature" to "sapce_nature"
         }
+
+        enemys
+            .filter { !it.isSpawn && !it.isDead }
+            .forEach { enemy ->
+                val entity = world.spawnEntity(enemy.location, EntityType.ZOMBIE) as LivingEntity
+
+                val modelId = if (Random.nextBoolean()) spaceModel else normalModel
+
+                CoreFrameAPI.Model.applyModel(entity, modelId, entity.location)
+
+                enemy.isSpawn = true
+                enemy.enemyUUID = entity.uniqueId.toString()
+            }
     }
     /** 마커 범위 내에 소환된 엔티티 반환 */
     private fun getMarkerNearbyLocation(location: Location): Entity? {

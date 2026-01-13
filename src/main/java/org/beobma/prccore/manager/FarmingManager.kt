@@ -352,7 +352,7 @@ object FarmingManager {
         }
 
         plant.farmlandLocation?.let {
-            spawnParticle(Particle.END_ROD, it.clone().add(0.0, 1.0, 0.0), 10, 0.0, 0.0, 0.0, 0.0)
+            spawnParticle(Particle.END_ROD, it.clone().add(0.5, 1.0, 0.5), 10, 0.05, 0.0, 0.05, 0.01)
             playSound(it, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f)
         }
         if (off.amount > 0) off.amount -= 1
