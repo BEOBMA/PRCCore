@@ -54,6 +54,10 @@ object FarmingManager {
         0 to -1,  0 to 0,  0 to 1,
         1 to -1,  1 to 0,  1 to 1
     )
+    private val NEIGHBOR_OFFSETS_2X2: List<Pair<Int, Int>> = listOf(
+        0 to 0, 1 to 0,
+        0 to 1, 1 to 1
+    )
     private const val WEED_CHANCE_PERCENT = 4
     private const val MODEL_WEED = 41
     private const val MODEL_DEAD_GRASS = 42
@@ -66,6 +70,14 @@ object FarmingManager {
             action(base.clone().add(dx.toDouble(), 0.0, dz.toDouble()).block)
         }
     }
+
+    /** 2×2 */
+    private inline fun forEach2x2(origin: Block, crossinline action: (Block) -> Unit) {
+        val base = origin.location
+        for ((dx, dz) in NEIGHBOR_OFFSETS_2X2) {
+            action(base.clone().add(dx.toDouble(), 0.0, dz.toDouble()).block)
+        }
+        }
 
     /** 경작지 변환 / 하부 경작지 반환 */
     private fun asFarmlandOrBelow(block: Block): Farmland? {
@@ -144,7 +156,7 @@ object FarmingManager {
         when (cmd) {
             DURABLE_HOE_CUSTOM_MODEL_DATA -> convertToFarmland(block)
             LIGHT_AND_STURDY_HOE_CUSTOM_MODEL_DATA -> {
-                forEach3x3(block) { b -> if (b.type == Material.DIRT) convertToFarmland(b) }
+                forEach2x2(block) { b -> if (b.type == Material.DIRT) convertToFarmland(b) }
             }
             AUTO_HOE_CUSTOM_MODEL_DATA -> autoHoeHandler(block, this)
         }

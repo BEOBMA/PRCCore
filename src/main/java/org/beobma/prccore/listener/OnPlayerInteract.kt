@@ -23,7 +23,9 @@ import org.beobma.prccore.manager.PlantManager.plantModels
 import org.beobma.prccore.manager.TimeManager
 import org.beobma.prccore.manager.ToolManager.CAPSULEGUN_CUSTOM_MODEL_DATA
 import org.beobma.prccore.manager.ToolManager.CAPSULE_MODEL_DATAS
+import org.beobma.prccore.manager.ToolManager.GROWTH_CAPSULE_MODEL_DATA
 import org.beobma.prccore.manager.ToolManager.HOE_CUSTOM_MODEL_DATAS
+import org.beobma.prccore.manager.ToolManager.NUTRIENT_CAPSULE_MODEL_DATA
 import org.beobma.prccore.manager.ToolManager.WATERINGCAN_CUSTOM_MODEL_DATAS
 import org.beobma.prccore.manager.ToolManager.WEED_KILLER_CAPSULE_MODEL_DATA
 import org.beobma.prccore.manager.ToolManager.decreaseCustomDurability
@@ -228,7 +230,7 @@ class OnPlayerInteract : Listener {
         if (off.type == Material.ORANGE_DYE) {
             val canShoot = mainCmd == CAPSULEGUN_CUSTOM_MODEL_DATA &&
                     status.capsuleType == CapsuleType.None &&
-                    offCmd in CAPSULE_MODEL_DATAS
+                    (offCmd == GROWTH_CAPSULE_MODEL_DATA || offCmd == NUTRIENT_CAPSULE_MODEL_DATA)
             if (canShoot) player.capsule(plant)
             return
         }
