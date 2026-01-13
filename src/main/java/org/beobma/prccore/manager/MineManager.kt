@@ -34,6 +34,7 @@ import org.joml.AxisAngle4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.*
+import java.util.concurrent.CompletableFuture
 import kotlin.math.ceil
 import kotlin.random.Random
 
@@ -357,6 +358,8 @@ object MineManager {
         validFloors.add(1)
         val sortedFloors = validFloors.sorted()
 
+        preloadElevatorMines(player, sortedFloors)
+
         val slotIndices = listOf(4, 5, 6, 7, 13, 14, 15, 16, 22, 23, 24, 25)
         val inventory = Bukkit.createInventory(null, 27, miniMessage.deserialize("<white>\u340F\u3442"))
 
@@ -387,6 +390,52 @@ object MineManager {
 
         player.openInventory(inventory)
     }
+
+    private fun preloadElevatorMines(player: Player, elevatorFloors: List<Int>) {
+        elevatorFloors
+            .mapNotNull { floor -> mines.firstOrNull { it.floor == floor } }
+            .forEach { mine -> mine.preloadChunksAndSummon() }
+
+        val currentMine = mines.firstOrNull { it.players.contains(player) } ?: return
+        if (currentMine.floor % 5 != 1) return
+        val nextFloor = currentMine.floor + 1
+        if (nextFloor > MAX_MINE_FLOOR) return
+        mines.firstOrNull { it.floor == nextFloor }?.preloadChunksAndSummon()
+    }
+
+    private fun Mine.preloadChunksAndSummon() {
+        if (visualsSpawned) return
+
+        val chunkKeys = buildChunkKeys()
+        if (chunkKeys.isEmpty()) return
+
+        val futures = chunkKeys.map { (x, z) -> world.getChunkAtAsync(x, z, true) }
+
+        CompletableFuture.allOf(*futures.toTypedArray()).thenRun {
+            Bukkit.getScheduler().runTask(PrcCore.instance, Runnable {
+                spawnVisuals()
+            })
+        }
+    }
+
+    private fun Mine.buildChunkKeys(): Set<Pair<Int, Int>> {
+        val chunkKeys = mutableSetOf<Pair<Int, Int>>()
+
+        fun addChunk(location: Location?) {
+            if (location == null) return
+            val chunkX = location.blockX shr 4
+            val chunkZ = location.blockZ shr 4
+            chunkKeys.add(chunkX to chunkZ)
+        }
+
+        addChunk(startBlockLocation)
+        addChunk(exitBlockLocation)
+        resources.forEach { addChunk(it.location) }
+        enemys.forEach { addChunk(it.location) }
+
+        return chunkKeys
+    }
+
 
     /** 출구 */
     private fun Block.setExit(mine: Mine) {
@@ -423,7 +472,8 @@ object MineManager {
     /** 시각 요소 생성 */
     fun Mine.spawnVisuals() {
         val start = System.currentTimeMillis()
-        if (players.size > 1) return
+        if (visualsSpawned || players.size > 1) return
+        visualsSpawned = true
 
         startBlockLocation?.block?.type = Material.BARRIER
         if (floor != 1) {
@@ -461,6 +511,7 @@ object MineManager {
     fun Mine.removeVisuals() {
         val start = System.currentTimeMillis()
         if (players.isNotEmpty()) return
+        visualsSpawned = false
 
         startBlockLocation?.block?.type = Material.AIR
         startBlockUUID?.let { getItemDisplayToUUID(it)?.remove() }
