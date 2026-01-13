@@ -15,13 +15,14 @@ class OnInventoryClick : Listener {
     fun onInventoryClick(event: InventoryClickEvent) {
         val player = event.whoClicked as? Player ?: return
         val clickedItem = event.currentItem ?: return
-        val displayName = clickedItem.itemMeta?.displayName() ?: return
+        val displayName = clickedItem.itemMeta?.displayName()
         val view = event.view
 
 
         if (view.title() == miniMessage.deserialize("<white>\u340F\u3442")) {
-            val displayName = LegacyComponentSerializer.legacySection().serialize(displayName)
             event.isCancelled = true
+            if (displayName == null) return
+            val displayName = LegacyComponentSerializer.legacySection().serialize(displayName)
             val floor = Regex("""(\d+)층""").find(displayName)?.groupValues?.get(1)?.toIntOrNull() ?: return
 
             player.approach(null, floor)

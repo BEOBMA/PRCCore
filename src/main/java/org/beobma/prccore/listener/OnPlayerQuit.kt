@@ -26,7 +26,6 @@ class OnPlayerQuit : Listener {
         playerList.remove(player)
         if (currentMine != null) {
             currentMine.players.remove(player)
-            player.teleport(Location(world, -191.0, -56.0, 95.0))
             player.leaveMine(currentMine)
         }
 

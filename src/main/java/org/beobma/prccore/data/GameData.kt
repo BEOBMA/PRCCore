@@ -2,6 +2,7 @@ package org.beobma.prccore.data
 
 import kotlinx.serialization.Serializable
 import org.beobma.prccore.util.Season
+import org.bukkit.Location
 
 @Serializable
 data class GameData(

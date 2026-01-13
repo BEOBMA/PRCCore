@@ -45,7 +45,6 @@ class OnEntityDeath : Listener {
     private fun onPlayerKillerByEntity(entity: Player) {
         val mine = mines.find { mine -> mine.players.any { it == entity } } ?: return
         mine.players.remove(entity)
-        entity.teleport(Location(entity.world, -191.0, -56.0, 95.0))
         entity.leaveMine(mine)
 
         // 광산 1층에서 사망

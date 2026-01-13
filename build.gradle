@@ -27,6 +27,7 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
     compileOnly("com.github.mireu9275:PRCMission:v1.0.8")
+    compileOnly(files("libs/CoreFrame-1.0-SNAPSHOT.jar"))
 }
 
 def targetJavaVersion = 21

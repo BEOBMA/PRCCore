@@ -1,7 +1,6 @@
 package org.beobma.prccore.mine
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import org.beobma.prccore.data.LocationSerializer
 import org.beobma.prccore.entity.Enemy
 import org.beobma.prccore.resource.Resource
@@ -23,7 +22,5 @@ data class Mine(
     @Serializable(with = LocationSerializer::class)
     var exitBlockLocation: Location? = null,
     var exitBlockUUID: String? = null,
-    var exitBlockMarker: String? = null,
-    @Transient
-    var visualsSpawned: Boolean = false
+    var exitBlockMarker: String? = null
 )

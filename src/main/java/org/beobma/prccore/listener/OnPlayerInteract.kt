@@ -2,6 +2,7 @@ package org.beobma.prccore.listener
 
 import org.beobma.prccore.PrcCore
 import org.beobma.prccore.manager.CustomModelDataManager.getCustomModelData
+import org.beobma.prccore.manager.DataManager
 import org.beobma.prccore.manager.DataManager.mines
 import org.beobma.prccore.manager.DataManager.plantList
 import org.beobma.prccore.manager.FarmingManager.capsule
@@ -124,6 +125,7 @@ class OnPlayerInteract : Listener {
         if (entity is Interaction) {
             val key = NamespacedKey("module", "mine_interaction")
             val pdc = entity.persistentDataContainer
+            DataManager.mineExitLocation = entity.location
             if (pdc.getOrDefault(key, PersistentDataType.BOOLEAN, false)) {
                 showMineFloorSelector(player)
                 return

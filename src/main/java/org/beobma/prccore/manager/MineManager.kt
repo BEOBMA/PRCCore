@@ -26,15 +26,17 @@ import org.bukkit.entity.Display
 import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.ItemDisplay
+import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
+import org.bukkit.entity.Zombie
 import org.bukkit.entity.minecart.CommandMinecart
 import org.bukkit.inventory.ItemStack
 import org.bukkit.util.Transformation
+import org.example.hoon.coreframe.api.CoreFrameAPI
 import org.joml.AxisAngle4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.*
-import java.util.concurrent.CompletableFuture
 import kotlin.math.ceil
 import kotlin.random.Random
 
@@ -91,7 +93,7 @@ object MineManager {
 
     /** 특정 층으로 이동 처리 */
     fun Player.approach(currentMine: Mine?, floor: Int, isExit: Boolean = false): Boolean {
-        val home = Location(this.world, -191.0, -56.0, 95.0)
+        val home = DataManager.mineExitLocation ?: return false
 
         fun teleportHome(): Boolean {
             this.teleport(home)
@@ -218,12 +220,14 @@ object MineManager {
 
     /** 퇴장 */
     fun Player.leaveMine(mine: Mine) {
+        val exitLocation = DataManager.mineExitLocation ?: return
         mine.players.remove(this)
         mine.removeVisuals()
         mine.enemys.filter { it.isSpawn && !it.isDead && it.enemyUUID != null }.forEach {
             it.isSpawn = false
             Bukkit.getEntity(UUID.fromString(it.enemyUUID))?.remove()
         }
+        teleport(exitLocation)
     }
 
     /** 적 스폰 */
@@ -358,8 +362,6 @@ object MineManager {
         validFloors.add(1)
         val sortedFloors = validFloors.sorted()
 
-        preloadElevatorMines(player, sortedFloors)
-
         val slotIndices = listOf(4, 5, 6, 7, 13, 14, 15, 16, 22, 23, 24, 25)
         val inventory = Bukkit.createInventory(null, 27, miniMessage.deserialize("<white>\u340F\u3442"))
 
@@ -390,52 +392,6 @@ object MineManager {
 
         player.openInventory(inventory)
     }
-
-    private fun preloadElevatorMines(player: Player, elevatorFloors: List<Int>) {
-        elevatorFloors
-            .mapNotNull { floor -> mines.firstOrNull { it.floor == floor } }
-            .forEach { mine -> mine.preloadChunksAndSummon() }
-
-        val currentMine = mines.firstOrNull { it.players.contains(player) } ?: return
-        if (currentMine.floor % 5 != 1) return
-        val nextFloor = currentMine.floor + 1
-        if (nextFloor > MAX_MINE_FLOOR) return
-        mines.firstOrNull { it.floor == nextFloor }?.preloadChunksAndSummon()
-    }
-
-    private fun Mine.preloadChunksAndSummon() {
-        if (visualsSpawned) return
-
-        val chunkKeys = buildChunkKeys()
-        if (chunkKeys.isEmpty()) return
-
-        val futures = chunkKeys.map { (x, z) -> world.getChunkAtAsync(x, z, true) }
-
-        CompletableFuture.allOf(*futures.toTypedArray()).thenRun {
-            Bukkit.getScheduler().runTask(PrcCore.instance, Runnable {
-                spawnVisuals()
-            })
-        }
-    }
-
-    private fun Mine.buildChunkKeys(): Set<Pair<Int, Int>> {
-        val chunkKeys = mutableSetOf<Pair<Int, Int>>()
-
-        fun addChunk(location: Location?) {
-            if (location == null) return
-            val chunkX = location.blockX shr 4
-            val chunkZ = location.blockZ shr 4
-            chunkKeys.add(chunkX to chunkZ)
-        }
-
-        addChunk(startBlockLocation)
-        addChunk(exitBlockLocation)
-        resources.forEach { addChunk(it.location) }
-        enemys.forEach { addChunk(it.location) }
-
-        return chunkKeys
-    }
-
 
     /** 출구 */
     private fun Block.setExit(mine: Mine) {
@@ -472,8 +428,7 @@ object MineManager {
     /** 시각 요소 생성 */
     fun Mine.spawnVisuals() {
         val start = System.currentTimeMillis()
-        if (visualsSpawned || players.size > 1) return
-        visualsSpawned = true
+        if (players.size > 1) return
 
         startBlockLocation?.block?.type = Material.BARRIER
         if (floor != 1) {
@@ -511,7 +466,6 @@ object MineManager {
     fun Mine.removeVisuals() {
         val start = System.currentTimeMillis()
         if (players.isNotEmpty()) return
-        visualsSpawned = false
 
         startBlockLocation?.block?.type = Material.AIR
         startBlockUUID?.let { getItemDisplayToUUID(it)?.remove() }
@@ -546,50 +500,12 @@ object MineManager {
     /** 적 스폰 실행 */
     fun Mine.spawnEnemysMine() {
         enemys.filter { !it.isSpawn && !it.isDead }.forEach {
-            val random = Random.nextInt(1, 3)
-            when (it.entityType) {
-                EntityType.DROWNED -> {
-                    if (random == 1) {
-                        runCommand(it.location, "function zombie:magma_zombie_summon")
-                    }
-                    else {
-                        runCommand(it.location, "function zombie:mamga_spaceman_zombie_summon")
-                    }
-                }
-                EntityType.HUSK -> {
-                    if (random == 1) {
-                        runCommand(it.location, "function zombie:nature_zombie_summon")
-                    }
-                    else {
-                        runCommand(it.location, "function zombie:nature_spaceman_zombie_summon")
-                    }
-                }
-                EntityType.ZOMBIE -> {
-                    if (random == 1) {
-                        runCommand(it.location, "function zombie:rock_zombie_summon")
-                    }
-                    else {
-                        runCommand(it.location, "function zombie:rock_spaceman_zombie_summon")
-                    }
-                }
-                else -> {
-
-                }
-            }
-            val entity = getMarkerNearbyLocation(it.location) ?: return@forEach
+            val entity = world.spawnEntity(it.location, EntityType.ZOMBIE) as LivingEntity
+            CoreFrameAPI.Model.applyModel(entity, "", entity.location)
             it.isSpawn = true
             it.enemyUUID = entity.uniqueId.toString()
         }
     }
-
-    private fun runCommand(location: Location, command: String) {
-        location.world.spawn(location, CommandMinecart::class.java) { entity ->
-            entity.setCommand(command)
-            Bukkit.getServer().dispatchCommand(entity, command)
-            entity.remove()
-        }
-    }
-
     /** 마커 범위 내에 소환된 엔티티 반환 */
     private fun getMarkerNearbyLocation(location: Location): Entity? {
         for (entity in location.world.getNearbyEntities(location, 2.0, 2.0, 2.0)) {

@@ -9,6 +9,7 @@ import org.beobma.prccore.data.LocationListSerializer
 import org.beobma.prccore.mine.Mine
 import org.beobma.prccore.plant.Plant
 import org.beobma.prccore.util.Season
+import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import java.io.File
@@ -33,6 +34,8 @@ object DataManager {
     var interactionFarmlands: MutableList<Location> = mutableListOf()
     var playerList: MutableList<Player> = mutableListOf()
     var advancementList: MutableList<AdvancementData> = mutableListOf()
+
+    var mineExitLocation: Location? = Location(Bukkit.getWorlds().first(), 0.0, 0.0, 0.0)
 
     /** 전체 저장 */
     fun saveAll() {

@@ -34,7 +34,6 @@ class PrcCore : JavaPlugin() {
         playerList.toList().forEach { player ->
             val mine = mines.find { it.players.contains(player) } ?: return@forEach
             mine.players.remove(player)
-            player.teleport(Location(Bukkit.getWorlds().first(), -191.0, -56.0, 95.0))
             player.leaveMine(mine)
         }
         playerList.clear()
