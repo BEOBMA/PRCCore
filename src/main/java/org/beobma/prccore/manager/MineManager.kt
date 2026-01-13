@@ -1,7 +1,7 @@
 package org.beobma.prccore.manager
 
-import kr.eme.semiMission.api.events.MissionEvent
-import kr.eme.semiMission.enums.MissionVersion
+import kr.eme.prcMission.api.events.MissionEvent
+import kr.eme.prcMission.enums.MissionVersion
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.beobma.prccore.PrcCore
 import org.beobma.prccore.entity.Enemy
@@ -357,7 +357,7 @@ object MineManager {
         val sortedFloors = validFloors.sorted()
 
         val slotIndices = listOf(4, 5, 6, 7, 13, 14, 15, 16, 22, 23, 24, 25)
-        val inventory = Bukkit.createInventory(null, 27, miniMessage.deserialize("mineShow"))
+        val inventory = Bukkit.createInventory(null, 27, miniMessage.deserialize("<white>\u340F\u3442"))
 
         for ((i, floor) in sortedFloors.withIndex()) {
             if (i >= slotIndices.size) break

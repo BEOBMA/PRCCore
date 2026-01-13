@@ -1,7 +1,7 @@
 package org.beobma.prccore.listener
 
-import kr.eme.semiMission.api.events.MissionEvent
-import kr.eme.semiMission.enums.MissionVersion
+import kr.eme.prcMission.api.events.MissionEvent
+import kr.eme.prcMission.enums.MissionVersion
 import org.beobma.prccore.manager.AdvancementManager.grantAdvancement
 import org.beobma.prccore.manager.DataManager.mines
 import org.beobma.prccore.manager.MineManager.leaveMine

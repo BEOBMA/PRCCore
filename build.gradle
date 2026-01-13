@@ -26,7 +26,7 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
-    compileOnly("com.github.mireu9275:semiMission:v1.0.5")
+    compileOnly("com.github.mireu9275:PRCMission:v1.0.8")
 }
 
 def targetJavaVersion = 21

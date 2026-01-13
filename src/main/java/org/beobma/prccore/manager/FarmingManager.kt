@@ -5,8 +5,8 @@ import io.papermc.paper.datacomponent.item.Consumable
 import io.papermc.paper.datacomponent.item.FoodProperties
 import io.papermc.paper.datacomponent.item.consumable.ConsumeEffect
 import io.papermc.paper.datacomponent.item.consumable.ItemUseAnimation
-import kr.eme.semiMission.api.events.MissionEvent
-import kr.eme.semiMission.enums.MissionVersion
+import kr.eme.prcMission.api.events.MissionEvent
+import kr.eme.prcMission.enums.MissionVersion
 import org.beobma.prccore.manager.AdvancementManager.addAdvancementInt
 import org.beobma.prccore.manager.CustomModelDataManager.getCustomModelData
 import org.beobma.prccore.manager.DataManager.interactionFarmlands

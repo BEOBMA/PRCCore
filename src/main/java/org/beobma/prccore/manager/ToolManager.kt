@@ -46,9 +46,9 @@ object ToolManager {
     const val PUMP_WATERINGCAN_CUSTOM_MODEL_DATA: Int = 8
 
     const val CAPSULEGUN_CUSTOM_MODEL_DATA: Int = 9
-    const val WEED_KILLER_CAPSULE_MODEL_DATA: Int = 38
-    const val GROWTH_CAPSULE_MODEL_DATA: Int = 39
-    const val NUTRIENT_CAPSULE_MODEL_DATA: Int = 40
+    const val WEED_KILLER_CAPSULE_MODEL_DATA: Int = 2
+    const val GROWTH_CAPSULE_MODEL_DATA: Int = 3
+    const val NUTRIENT_CAPSULE_MODEL_DATA: Int = 4
 
     const val PICKAXE_MODEL_DATA: Int = 1
     const val LIGHTDRILL_MODEL_DATA: Int = 2
