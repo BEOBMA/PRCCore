@@ -188,13 +188,13 @@ object FarmingManager {
 
         when (cmd) {
             WATERINGCAN_CUSTOM_MODEL_DATA -> {
-                spawnParticle(Particle.FALLING_WATER, block.location.add(0.5, 1.0, 0.5), WATER_PARTICLE, 0.1, 0.1, 0.1, 1.0)
+                spawnParticle(Particle.FALLING_WATER, block.location.clone().add(0.5, 1.0, 0.5), WATER_PARTICLE, 0.1, 0.1, 0.1, 1.0)
                 fireMission(MissionVersion.V1,"FARMING", "farming_module", 1)
                 moistenFarmland(block)
             }
             PUMP_WATERINGCAN_CUSTOM_MODEL_DATA -> {
                 forEach3x3(block) { b ->
-                    spawnParticle(Particle.FALLING_WATER, b.location.add(0.5, 1.0, 0.5), WATER_PARTICLE, 0.1, 0.1, 0.1, 1.0)
+                    spawnParticle(Particle.FALLING_WATER, b.location.clone().add(0.5, 1.0, 0.5), WATER_PARTICLE, 0.1, 0.1, 0.1, 1.0)
                     fireMission(MissionVersion.V1,"FARMING", "farming_module", 1)
                     moistenFarmland(b)
                 }
@@ -280,7 +280,7 @@ object FarmingManager {
         // 등급 확률 계산
         val isNutrient = (status.capsuleType == CapsuleType.Nutrient)
         val iridiumChance = if (isNutrient) 30 else 0
-        val goldChance = if (isNutrient) 30 else 70
+        val goldChance = if (isNutrient) 70 else 30
 
         fun addOneHarvest() {
             val item = plant.getHarvestItem()
@@ -340,7 +340,7 @@ object FarmingManager {
         }
 
         plant.farmlandLocation?.let {
-            spawnParticle(Particle.END_ROD, it, 10, 0.0, 0.0, 0.0, 0.0)
+            spawnParticle(Particle.END_ROD, it.clone().add(0.0, 1.0, 0.0), 10, 0.0, 0.0, 0.0, 0.0)
             playSound(it, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f)
         }
         if (off.amount > 0) off.amount -= 1

@@ -25,6 +25,7 @@ import org.beobma.prccore.manager.ToolManager.CAPSULEGUN_CUSTOM_MODEL_DATA
 import org.beobma.prccore.manager.ToolManager.CAPSULE_MODEL_DATAS
 import org.beobma.prccore.manager.ToolManager.HOE_CUSTOM_MODEL_DATAS
 import org.beobma.prccore.manager.ToolManager.WATERINGCAN_CUSTOM_MODEL_DATAS
+import org.beobma.prccore.manager.ToolManager.WEED_KILLER_CAPSULE_MODEL_DATA
 import org.beobma.prccore.manager.ToolManager.decreaseCustomDurability
 import org.beobma.prccore.manager.ToolManager.getCurrentCustomDurability
 import org.beobma.prccore.plant.Plant
@@ -61,7 +62,11 @@ class OnPlayerInteract : Listener {
         val cmd = item?.getCustomModelData()
         val plantAtBlock = plantList.find { it.farmlandLocation == block.location }
 
-        // 테스트용 시계
+        if ((cmd == null || cmd !in HOE_CUSTOM_MODEL_DATAS) && block.type == Material.DIRT) {
+            event.isCancelled = true
+            return
+        }
+
         if (item?.type == Material.CLOCK) {
             TimeManager.endOfDay()
             return
@@ -116,6 +121,8 @@ class OnPlayerInteract : Listener {
 
     @EventHandler
     fun onPlayerInteractEntity(event: PlayerInteractEntityEvent) {
+        if (event.hand != EquipmentSlot.HAND) return
+
         val player = event.player
         val entity = event.rightClicked
         val main = player.inventory.itemInMainHand
@@ -202,13 +209,16 @@ class OnPlayerInteract : Listener {
                 status.isHarvestComplete -> player.harvesting(plant)
                 status.isDeadGrass       -> player.removePlant(plant)
                 status.isWeeds           -> {
-                    val display = plant.getItemDisplay() ?: return
-                    val newStack = display.itemStack.apply {
-                        itemMeta = itemMeta.apply { setCustomModelData(plantModels[registered]) }
+                    if (off.type == Material.ORANGE_DYE && offCmd == WEED_KILLER_CAPSULE_MODEL_DATA) {
+                        val display = plant.getItemDisplay() ?: return
+                        val newStack = display.itemStack.apply {
+                            itemMeta = itemMeta.apply { setCustomModelData(plantModels[registered]) }
+                        }
+                        display.setItemStack(newStack)
+                        status.isWeeds = false
+                        status.weedsCount = 0
+                        off.amount--
                     }
-                    display.setItemStack(newStack)
-                    status.isWeeds = false
-                    status.weedsCount = 0
                 }
             }
             return
