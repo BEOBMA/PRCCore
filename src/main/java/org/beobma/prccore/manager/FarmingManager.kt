@@ -353,7 +353,6 @@ object FarmingManager {
             display.setItemStack(newStack)
             status.isWeeds = false
             status.weedsCount = 0
-            off.amount--
         }
 
         status.capsuleType = when (offCmd) {
