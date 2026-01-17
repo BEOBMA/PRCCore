@@ -186,7 +186,6 @@ object FarmingManager {
             if (plantType != null && off.amount > 0) {
                 val instance = getPlantInstance(plantType)
                 player.plant(target, instance)
-                off.amount--
             }
         }
     }
