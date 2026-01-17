@@ -202,26 +202,12 @@ class OnPlayerInteract : Listener {
         val off = player.inventory.itemInOffHand
         val mainCmd = main?.getCustomModelData()
         val offCmd = off.getCustomModelData()
-        val registered = getRegisterPlants()
-            .find { it.getSeedItem().getCustomModelData() == plant.getSeedItem().getCustomModelData() }
 
         // 빈손/무관 도구 상호작용
         if (mainCmd == null) {
             when {
                 status.isHarvestComplete -> player.harvesting(plant)
                 status.isDeadGrass       -> player.removePlant(plant)
-                status.isWeeds           -> {
-                    if (off.type == Material.ORANGE_DYE && offCmd == WEED_KILLER_CAPSULE_MODEL_DATA) {
-                        val display = plant.getItemDisplay() ?: return
-                        val newStack = display.itemStack.apply {
-                            itemMeta = itemMeta.apply { setCustomModelData(plantModels[registered]) }
-                        }
-                        display.setItemStack(newStack)
-                        status.isWeeds = false
-                        status.weedsCount = 0
-                        off.amount--
-                    }
-                }
             }
             return
         }
@@ -230,7 +216,7 @@ class OnPlayerInteract : Listener {
         if (off.type == Material.ORANGE_DYE) {
             val canShoot = mainCmd == CAPSULEGUN_CUSTOM_MODEL_DATA &&
                     status.capsuleType == CapsuleType.None &&
-                    (offCmd == GROWTH_CAPSULE_MODEL_DATA || offCmd == NUTRIENT_CAPSULE_MODEL_DATA)
+                    (offCmd in CAPSULE_MODEL_DATAS)
             if (canShoot) player.capsule(plant)
             return
         }

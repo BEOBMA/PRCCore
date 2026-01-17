@@ -339,15 +339,28 @@ object FarmingManager {
         val handCmd = hand.getCustomModelData()
         val offCmd = off.getCustomModelData()
 
+        if (plant.plantStatus.isDeadGrass) return
         if (handCmd != CAPSULEGUN_CUSTOM_MODEL_DATA) return
         if (offCmd !in CAPSULE_MODEL_DATAS) return
         if (status.isHarvestComplete || !status.isPlant) return
         if (status.capsuleType != CapsuleType.None) return
+        if (offCmd == WEED_KILLER_CAPSULE_MODEL_DATA && plant.plantStatus.isWeeds) {
+            val registered = getRegisterPlants()
+                .find { it.getSeedItem().getCustomModelData() == plant.getSeedItem().getCustomModelData() }
+            val display = plant.getItemDisplay() ?: return
+            val newStack = display.itemStack.apply {
+                itemMeta = itemMeta.apply { setCustomModelData(plantModels[registered]) }
+            }
+            display.setItemStack(newStack)
+            status.isWeeds = false
+            status.weedsCount = 0
+            off.amount--
+        }
 
         status.capsuleType = when (offCmd) {
             GROWTH_CAPSULE_MODEL_DATA      -> CapsuleType.Growth
             NUTRIENT_CAPSULE_MODEL_DATA    -> CapsuleType.Nutrient
-            WEED_KILLER_CAPSULE_MODEL_DATA -> CapsuleType.WeedKiller
+            WEED_KILLER_CAPSULE_MODEL_DATA -> CapsuleType.None
             else                           -> CapsuleType.None
         }
 
