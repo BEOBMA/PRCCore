@@ -58,10 +58,6 @@ kotlin {
     jvmToolchain(21)
 }
 
-shadowJar{
-    archivesBaseName = 'PRCCore'
-    destinationDirectory = file("C:\\Users\\user\\Desktop\\서버\\마인크래프트\\스타듀 밸리 프로젝트\\plugins")
-    manifest {
-        attributes 'Main-Class': 'src/main/java/org/beobma/prccore/PrcCore.kt'
-    }
+tasks.build {
+    dependsOn("shadowJar")
 }
