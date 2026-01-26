@@ -22,7 +22,7 @@ class Capsule {
         meta.displayName(MiniMessage.miniMessage().deserialize("제초 캡슐"))
         meta.lore(
             listOf(
-                MiniMessage.miniMessage().deserialize("<gray>제초제 성분이 담긴 캡슐, 식물에 사용하면 잡초와 관계 없이 자라난다.")
+                MiniMessage.miniMessage().deserialize("<gray>제초제 성분이 담긴 캡슐.")
             )
         )
         meta.setCustomModelData(2)
