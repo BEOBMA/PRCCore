@@ -120,35 +120,19 @@ class OnPlayerInteract : Listener {
         if (item == null) return
         if (item.type != Material.BLACK_DYE) return
 
-        PrcCore.instance.loggerMessage(
-            "Planting attempt by ${player.name} at ${block.location} with seed model=${item.getCustomModelData()}"
-        )
-
         val registered = getRegisterPlants()
             .find { item.matchesItemModel(it.getSeedItem()) } ?: run {
-            PrcCore.instance.loggerMessage(
-                "Planting aborted for ${player.name}: no registered seed match (model=${item.getCustomModelData()})"
-            )
             event.isCancelled = true; return
         }
 
         if (block.type != Material.FARMLAND) {
-            PrcCore.instance.loggerMessage(
-                "Planting aborted for ${player.name}: block ${block.type} is not farmland at ${block.location}"
-            )
             event.isCancelled = true; return
         }
         if (plantList.any { it.farmlandLocation == block.location }) {
-            PrcCore.instance.loggerMessage(
-                "Planting aborted for ${player.name}: farmland already occupied at ${block.location}"
-            )
             event.isCancelled = true; return
         }
 
         val newPlant = getPlantInstance(registered)
-        PrcCore.instance.loggerMessage(
-            "Planting seed ${registered.name} for ${player.name} at ${block.location}"
-        )
         player.plant(block, newPlant)
         event.isCancelled = true
     }

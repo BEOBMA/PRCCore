@@ -7,7 +7,6 @@ import io.papermc.paper.datacomponent.item.consumable.ConsumeEffect
 import io.papermc.paper.datacomponent.item.consumable.ItemUseAnimation
 import kr.eme.prcMission.api.events.MissionEvent
 import kr.eme.prcMission.enums.MissionVersion
-import org.beobma.prccore.PrcCore
 import org.beobma.prccore.manager.AdvancementManager.addAdvancementInt
 import org.beobma.prccore.manager.CustomModelDataManager.getCustomModelData
 import org.beobma.prccore.manager.CustomModelDataManager.hasCustomModelData
@@ -231,32 +230,17 @@ object FarmingManager {
             cmd = item.getCustomModelData()
             registered = registry.find { item.matchesItemModel(it.getSeedItem()) }
         }
-        if (registered == null) {
-            PrcCore.instance.loggerMessage(
-                "Planting failed for ${name}: no registered seed in main/offhand at ${block.location}"
-            )
-            return
-        }
+        if (registered == null) return
 
         // 중복 방지
         if (plantList.any { it.farmlandLocation == block.location }) return
 
-        if (plantList.any { it.farmlandLocation == block.location }) {
-            PrcCore.instance.loggerMessage(
-                "Planting failed for ${name}: farmland already occupied at ${block.location}"
-            )
-            return
-        }
         // 잡초
         if (registered is WeedPlant) {
             plant.plantStatus.isWeeds = true
         } else if (Random.nextInt(100) < WEED_CHANCE_PERCENT) {
             plant.plantStatus.isWeeds = true
         }
-
-        PrcCore.instance.loggerMessage(
-            "Planting resolved for ${name}: seed=${registered.name}, weedSeed=${registered is WeedPlant}, isWeeds=${plant.plantStatus.isWeeds}"
-        )
 
         // 상태
         plant.farmlandLocation = block.location
@@ -278,9 +262,6 @@ object FarmingManager {
         display.setItemStack(stack)
 
         playSound(block.location, Sound.ITEM_HOE_TILL, 1.0f, 1.0f)
-        PrcCore.instance.loggerMessage(
-            "Planting complete for ${name}: planted=${plant.name}, model=$model, location=${block.location}"
-        )
     }
 
     /** 식물 제거 + 디스플레이 삭제 */
@@ -288,9 +269,6 @@ object FarmingManager {
         plant.farmlandLocation?.let { playSound(it, Sound.ITEM_HOE_TILL, 1.0f, 1.0f) }
         plantList.remove(plant)
         plant.getItemDisplay()?.remove()
-        PrcCore.instance.loggerMessage(
-            "Plant removed by ${name}: plant=${plant.name}, location=${plant.farmlandLocation}"
-        )
     }
 
     /** 시듬 */
@@ -446,9 +424,6 @@ object FarmingManager {
             when {
                 weedFound -> {
                     status.weedsCount++
-                    PrcCore.instance.loggerMessage(
-                        "Weed influence at ${fLoc}: weedsCount=${status.weedsCount}, plant=${name}"
-                    )
                     if (status.weedsCount > 2) wither()
                 }
                 nonWeedFound -> {
