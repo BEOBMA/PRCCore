@@ -74,8 +74,16 @@ class OnPlayerInteract : Listener {
 
         if (item?.type == Material.CLOCK) {
             TimeManager.endOfDay()
+            event.isCancelled = true
             return
         }
+
+        if (item?.type == Material.BUCKET) {
+            plantList.toList().forEach { player.removePlant(it) }
+            event.isCancelled = true
+            return
+        }
+
 
         // 광산
         if (mines.any { it.players.contains(player) }) {
