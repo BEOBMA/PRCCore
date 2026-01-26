@@ -7,6 +7,7 @@ import org.beobma.prccore.PrcCore
 import org.beobma.prccore.entity.Enemy
 import org.beobma.prccore.manager.AdvancementManager.grantAdvancement
 import org.beobma.prccore.manager.CustomModelDataManager.getCustomModelData
+import org.beobma.prccore.manager.CustomModelDataManager.hasCustomModelData
 import org.beobma.prccore.manager.DataManager.gameData
 import org.beobma.prccore.manager.DataManager.mines
 import org.beobma.prccore.manager.ToolManager.HEAVYDRILL_MODEL_DATA
@@ -239,8 +240,7 @@ object MineManager {
         if (resource.isGathering || gatheringPlayers.contains(this.uniqueId)) return
 
         val mainHand = inventory.itemInMainHand
-        val customModelData = mainHand.getCustomModelData()
-        if (customModelData !in PICKAXE_MODEL_DATAS) return
+        if (!mainHand.hasCustomModelData(PICKAXE_MODEL_DATAS, Material.WOODEN_SHOVEL)) return
 
         val mine = mines.find { it.players.contains(this) } ?: return
         val delay = getGatheringDelay(mainHand, resource.resourcesType) ?: return
@@ -333,13 +333,13 @@ object MineManager {
     }
 
     /** 단단한 곡괭이 판정 */
-    fun isHardPickaxe(item: ItemStack): Boolean = item.getCustomModelData() == PICKAXE_MODEL_DATA
+    fun isHardPickaxe(item: ItemStack): Boolean = item.hasCustomModelData(PICKAXE_MODEL_DATA, Material.WOODEN_SHOVEL)
 
     /** 경량 드릴 판정 */
-    fun isLightDrill(item: ItemStack): Boolean = item.getCustomModelData() == LIGHTDRILL_MODEL_DATA
+    fun isLightDrill(item: ItemStack): Boolean = item.hasCustomModelData(LIGHTDRILL_MODEL_DATA, Material.WOODEN_SHOVEL)
 
     /** 중량 드릴 판정 */
-    fun isHeavyDrill(item: ItemStack): Boolean = item.getCustomModelData() == HEAVYDRILL_MODEL_DATA
+    fun isHeavyDrill(item: ItemStack): Boolean = item.hasCustomModelData(HEAVYDRILL_MODEL_DATA, Material.WOODEN_SHOVEL)
 
     /** 층 선택 인벤토리 */
     fun showMineFloorSelector(player: Player) {

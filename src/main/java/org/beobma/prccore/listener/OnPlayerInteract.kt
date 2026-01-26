@@ -2,6 +2,8 @@ package org.beobma.prccore.listener
 
 import org.beobma.prccore.PrcCore
 import org.beobma.prccore.manager.CustomModelDataManager.getCustomModelData
+import org.beobma.prccore.manager.CustomModelDataManager.hasCustomModelData
+import org.beobma.prccore.manager.CustomModelDataManager.matchesItemModel
 import org.beobma.prccore.manager.DataManager
 import org.beobma.prccore.manager.DataManager.mines
 import org.beobma.prccore.manager.DataManager.plantList
@@ -63,8 +65,9 @@ class OnPlayerInteract : Listener {
         val item = event.item
         val cmd = item?.getCustomModelData()
         val plantAtBlock = plantList.find { it.farmlandLocation == block.location }
+        val isHoe = item?.hasCustomModelData(HOE_CUSTOM_MODEL_DATAS, Material.WOODEN_SHOVEL) ?: false
 
-        if ((cmd == null || cmd !in HOE_CUSTOM_MODEL_DATAS) && block.type == Material.DIRT) {
+        if (!isHoe && block.type == Material.DIRT) {
             event.isCancelled = true
             return
         }
@@ -82,14 +85,14 @@ class OnPlayerInteract : Listener {
         }
 
         // 경작
-        if (cmd != null && cmd in HOE_CUSTOM_MODEL_DATAS && block.type == Material.DIRT) {
+        if (cmd != null && isHoe && block.type == Material.DIRT) {
             player.tillage(block)
             event.isCancelled = true
             return
         }
 
         // 물 주기
-        if (cmd != null && cmd in WATERINGCAN_CUSTOM_MODEL_DATAS &&
+        if (cmd != null && item.hasCustomModelData(WATERINGCAN_CUSTOM_MODEL_DATAS, Material.WOODEN_SHOVEL) &&
             (block.type == Material.FARMLAND || block.type == Material.WHEAT)
         ) {
             player.watering(block)
@@ -109,7 +112,7 @@ class OnPlayerInteract : Listener {
         if (item.type != Material.BLACK_DYE) return
 
         val registered = getRegisterPlants()
-            .find { it.getSeedItem().getCustomModelData() == cmd } ?: run {
+            .find { item.matchesItemModel(it.getSeedItem()) } ?: run {
             event.isCancelled = true; return
         }
 
@@ -146,7 +149,7 @@ class OnPlayerInteract : Listener {
         val farmland = plant.farmlandLocation ?: return
 
         // 물 주기
-        if (cmd in WATERINGCAN_CUSTOM_MODEL_DATAS) {
+        if (main.hasCustomModelData(WATERINGCAN_CUSTOM_MODEL_DATAS, Material.WOODEN_SHOVEL)) {
             player.watering(farmland.block)
             event.isCancelled = true
             return
@@ -213,17 +216,16 @@ class OnPlayerInteract : Listener {
         }
 
         // 캡슐 상호작용
-        if (off.type == Material.ORANGE_DYE) {
-            val canShoot = mainCmd == CAPSULEGUN_CUSTOM_MODEL_DATA &&
-                    status.capsuleType == CapsuleType.None &&
-                    (offCmd in CAPSULE_MODEL_DATAS)
+        if (off.hasCustomModelData(CAPSULE_MODEL_DATAS, Material.ORANGE_DYE)) {
+            val canShoot = main.hasCustomModelData(CAPSULEGUN_CUSTOM_MODEL_DATA, Material.WOODEN_SHOVEL) &&
+                    status.capsuleType == CapsuleType.None && (offCmd in CAPSULE_MODEL_DATAS)
             if (canShoot) player.capsule(plant)
             return
         }
 
         // 관개 상호작용
-        if (main.type == Material.WOODEN_SHOVEL) {
-            if (mainCmd in WATERINGCAN_CUSTOM_MODEL_DATAS && !plant.isWatering()) {
+        if (main.hasCustomModelData(WATERINGCAN_CUSTOM_MODEL_DATAS, Material.WOODEN_SHOVEL)) {
+            if (!plant.isWatering()) {
                 player.watering(block)
             }
             return

@@ -9,6 +9,8 @@ import kr.eme.prcMission.api.events.MissionEvent
 import kr.eme.prcMission.enums.MissionVersion
 import org.beobma.prccore.manager.AdvancementManager.addAdvancementInt
 import org.beobma.prccore.manager.CustomModelDataManager.getCustomModelData
+import org.beobma.prccore.manager.CustomModelDataManager.hasCustomModelData
+import org.beobma.prccore.manager.CustomModelDataManager.matchesItemModel
 import org.beobma.prccore.manager.DataManager.interactionFarmlands
 import org.beobma.prccore.manager.DataManager.plantList
 import org.beobma.prccore.manager.PlantManager.PLANT_STAR_ICON_OFFSET
@@ -151,7 +153,7 @@ object FarmingManager {
         val main = inventory.itemInMainHand
         val cmd = main.getCustomModelData()
         if (block.type != Material.DIRT) return
-        if (cmd !in HOE_CUSTOM_MODEL_DATAS) return
+        if (!main.hasCustomModelData(HOE_CUSTOM_MODEL_DATAS, Material.WOODEN_SHOVEL)) return
 
         when (cmd) {
             DURABLE_HOE_CUSTOM_MODEL_DATA -> convertToFarmland(block)
@@ -177,8 +179,7 @@ object FarmingManager {
     private fun Player.autoHoeHandler(block: Block, player: Player) {
         val registry = getRegisterPlants()
         val off = player.inventory.itemInOffHand
-        val offCmd = off.getCustomModelData()
-        val plantType = registry.find { it.getSeedItem().getCustomModelData() == offCmd }
+        val plantType = registry.find { off.matchesItemModel(it.getSeedItem()) }
 
         forEach3x3(block) { target ->
             if (target.type != Material.DIRT) return@forEach3x3
@@ -194,8 +195,7 @@ object FarmingManager {
     fun Player.watering(block: Block) {
         val hand = inventory.itemInMainHand
         val cmd = hand.getCustomModelData()
-        if (hand.type != Material.WOODEN_SHOVEL) return
-        if (cmd !in WATERINGCAN_CUSTOM_MODEL_DATAS) return
+        if (!hand.hasCustomModelData(WATERINGCAN_CUSTOM_MODEL_DATAS, Material.WOODEN_SHOVEL)) return
 
         when (cmd) {
             WATERINGCAN_CUSTOM_MODEL_DATA -> {
@@ -223,11 +223,11 @@ object FarmingManager {
         // 손/보조손 씨앗 판별
         var item = inventory.itemInMainHand
         var cmd = item.getCustomModelData()
-        var registered = registry.find { it.getSeedItem().getCustomModelData() == cmd }
+        var registered = registry.find { item.matchesItemModel(it.getSeedItem()) }
         if (registered == null) {
             item = inventory.itemInOffHand
             cmd = item.getCustomModelData()
-            registered = registry.find { it.getSeedItem().getCustomModelData() == cmd }
+            registered = registry.find { item.matchesItemModel(it.getSeedItem()) }
         }
         if (registered == null) return
 
@@ -285,7 +285,7 @@ object FarmingManager {
         if (!status.isHarvestComplete || !status.isPlant) return
 
         val registered = getRegisterPlants()
-            .find { it.getSeedItem().getCustomModelData() == plant.getSeedItem().getCustomModelData() }
+            .find { it.getSeedItem().matchesItemModel(plant.getSeedItem()) }
         val baseCmd = plantAgIcons[registered] ?: return
 
         // 등급 확률 계산
@@ -335,17 +335,16 @@ object FarmingManager {
         val status = plant.plantStatus
         val hand = inventory.itemInMainHand
         val off = inventory.itemInOffHand
-        val handCmd = hand.getCustomModelData()
         val offCmd = off.getCustomModelData()
 
         if (plant.plantStatus.isDeadGrass) return
-        if (handCmd != CAPSULEGUN_CUSTOM_MODEL_DATA) return
-        if (offCmd !in CAPSULE_MODEL_DATAS) return
+        if (!hand.hasCustomModelData(CAPSULEGUN_CUSTOM_MODEL_DATA, Material.WOODEN_SHOVEL)) return
+        if (!off.hasCustomModelData(CAPSULE_MODEL_DATAS, Material.ORANGE_DYE)) return
         if (status.isHarvestComplete || !status.isPlant) return
         if (status.capsuleType != CapsuleType.None) return
         if (offCmd == WEED_KILLER_CAPSULE_MODEL_DATA && plant.plantStatus.isWeeds) {
             val registered = getRegisterPlants()
-                .find { it.getSeedItem().getCustomModelData() == plant.getSeedItem().getCustomModelData() }
+                .find { it.getSeedItem().matchesItemModel(plant.getSeedItem()) }
             val display = plant.getItemDisplay() ?: return
             val newStack = display.itemStack.apply {
                 itemMeta = itemMeta.apply { setCustomModelData(plantModels[registered]) }
@@ -402,7 +401,7 @@ object FarmingManager {
 
             val progress = (growthDays - remainingGrowthDays).toDouble() / growthDays
             val registered = getRegisterPlants()
-                .find { it.getSeedItem().getCustomModelData() == getSeedItem().getCustomModelData() }
+                .find { it.getSeedItem().matchesItemModel(getSeedItem()) }
 
             updateDisplayStage(this, registered, status.isHarvestComplete, progress)
             status.weedsCount = 0
