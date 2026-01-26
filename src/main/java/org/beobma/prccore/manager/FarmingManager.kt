@@ -343,15 +343,7 @@ object FarmingManager {
         if (status.isHarvestComplete || !status.isPlant) return
         if (status.capsuleType != CapsuleType.None) return
         if (offCmd == WEED_KILLER_CAPSULE_MODEL_DATA && plant.plantStatus.isWeeds) {
-            val registered = getRegisterPlants()
-                .find { it.getSeedItem().matchesItemModel(plant.getSeedItem()) }
-            val display = plant.getItemDisplay() ?: return
-            val newStack = display.itemStack.apply {
-                itemMeta = itemMeta.apply { setCustomModelData(plantModels[registered]) }
-            }
-            display.setItemStack(newStack)
-            status.isWeeds = false
-            status.weedsCount = 0
+            removePlant(plant)
         }
 
         status.capsuleType = when (offCmd) {
