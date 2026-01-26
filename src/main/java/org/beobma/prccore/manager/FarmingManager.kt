@@ -37,6 +37,7 @@ import org.beobma.prccore.manager.ToolManager.WEED_KILLER_CAPSULE_MODEL_DATA
 import org.beobma.prccore.manager.ToolManager.decreaseCustomDurability
 import org.beobma.prccore.plant.EatablePlants
 import org.beobma.prccore.plant.Plant
+import org.beobma.prccore.plant.list.WeedPlant
 import org.beobma.prccore.tool.CapsuleType
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -235,7 +236,9 @@ object FarmingManager {
         if (plantList.any { it.farmlandLocation == block.location }) return
 
         // 잡초
-        if (Random.nextInt(100) < WEED_CHANCE_PERCENT) {
+        if (registered is WeedPlant) {
+            plant.plantStatus.isWeeds = true
+        } else if (Random.nextInt(100) < WEED_CHANCE_PERCENT) {
             plant.plantStatus.isWeeds = true
         }
 
