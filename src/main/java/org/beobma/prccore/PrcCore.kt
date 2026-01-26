@@ -69,7 +69,7 @@ class PrcCore : JavaPlugin() {
         CranberryPlant().register(CranberryPlant::class.java, 38, 8, 29)
         BitPlant().register(BitPlant::class.java, 39, 9, 33)
         PumpkinPlant().register(PumpkinPlant::class.java, 40, 10, 37)
-        WeedPlant().register(WeedPlant::class.java, 0, 0, 41)
+        WeedPlant().register(WeedPlant::class.java, 1, 2, 41)
     }
 
 
