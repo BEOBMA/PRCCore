@@ -1,5 +1,6 @@
 package org.beobma.prccore.listener
 
+import io.papermc.paper.datacomponent.DataComponentTypes
 import org.beobma.prccore.PrcCore
 import org.beobma.prccore.manager.CustomModelDataManager.getCustomModelData
 import org.beobma.prccore.manager.CustomModelDataManager.hasCustomModelData
@@ -21,6 +22,7 @@ import org.beobma.prccore.manager.PlantManager.getItemDisplay
 import org.beobma.prccore.manager.PlantManager.getPlantInstance
 import org.beobma.prccore.manager.PlantManager.getRegisterPlants
 import org.beobma.prccore.manager.PlantManager.getSeedItem
+import org.beobma.prccore.manager.PlantManager.plantAgIcons
 import org.beobma.prccore.manager.PlantManager.plantModels
 import org.beobma.prccore.manager.TimeManager
 import org.beobma.prccore.manager.ToolManager.CAPSULEGUN_CUSTOM_MODEL_DATA
@@ -220,7 +222,7 @@ class OnPlayerInteract : Listener {
         val offCmd = off.getCustomModelData()
 
         // 빈손/무관 도구 상호작용
-        if (mainCmd == null) {
+        if (mainCmd == null || main.isFoodLikeItem()) {
             when {
                 status.isHarvestComplete -> player.harvesting(plant)
                 status.isDeadGrass       -> player.removePlant(plant)
@@ -243,5 +245,12 @@ class OnPlayerInteract : Listener {
             }
             return
         }
+    }
+
+    private fun ItemStack?.isFoodLikeItem(): Boolean {
+        val stack = this ?: return false
+        return stack.type.isEdible ||
+                stack.hasData(DataComponentTypes.FOOD) ||
+                stack.hasData(DataComponentTypes.CONSUMABLE)
     }
 }
