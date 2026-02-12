@@ -4,6 +4,7 @@ import kr.eme.prcMission.api.events.MissionEvent
 import kr.eme.prcMission.enums.MissionVersion
 import org.beobma.prccore.manager.AdvancementManager.grantAdvancement
 import org.beobma.prccore.manager.DataManager.mines
+import org.beobma.prccore.manager.MineManager.createMonsterDropItemForFloor
 import org.beobma.prccore.manager.MineManager.leaveMine
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -20,7 +21,7 @@ class OnEntityDeath : Listener {
         val killer = entity.killer
 
         if (killer is Player) {
-            onEntityKillerByPlayer(killer, entity)
+            onEntityKillerByPlayer(event, killer, entity)
         }
         else if (entity is Player) {
             onPlayerKillerByEntity(entity)
@@ -30,7 +31,7 @@ class OnEntityDeath : Listener {
         }
     }
 
-    private fun onEntityKillerByPlayer(killer: Player, entity: LivingEntity) {
+    private fun onEntityKillerByPlayer(event: EntityDeathEvent,killer: Player, entity: LivingEntity) {
         val mine = mines.find { it.players.contains(killer) } ?: return
         val enemy = mine.enemys.find { it.enemyUUID == entity.uniqueId.toString() } ?: return
 
@@ -40,6 +41,9 @@ class OnEntityDeath : Listener {
 
         enemy.isDead = true
         enemy.isSpawn = false
+
+        val dropItem = createMonsterDropItemForFloor(mine.floor) ?: return
+        event.drops.add(dropItem)
     }
 
     private fun onPlayerKillerByEntity(entity: Player) {

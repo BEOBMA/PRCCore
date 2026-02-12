@@ -46,6 +46,66 @@ object MineManager {
 
     val gatheringPlayers = mutableSetOf<UUID>()
 
+    /** 드랍/생성 가중치 단위 */
+    private data class WeightedResource(val type: ResourceType?, val weight: Int)
+
+    /** 층수별 가중치 룰 */
+    private data class FloorResourceRule(val floors: IntRange, val entries: List<WeightedResource>)
+
+    /**
+     * 층수별 광산 자원 가중치.
+     */
+    private val floorResourceRules = listOf(
+        FloorResourceRule(1..8, listOf(
+            WeightedResource(Magnesium, 33),
+            WeightedResource(Aluminum, 67)
+        )),
+        FloorResourceRule(9..16, listOf(
+            WeightedResource(Magnesium, 31),
+            WeightedResource(Aluminum, 30),
+            WeightedResource(Iron, 40)
+        )),
+        FloorResourceRule(17..24, listOf(
+            WeightedResource(Magnesium, 21),
+            WeightedResource(Aluminum, 20),
+            WeightedResource(Iron, 30),
+            WeightedResource(Copper, 30)
+        )),
+        FloorResourceRule(25..32, listOf(
+            WeightedResource(Magnesium, 1),
+            WeightedResource(Aluminum, 1),
+            WeightedResource(Iron, 29),
+            WeightedResource(Copper, 20),
+            WeightedResource(Lithium, 50)
+        )),
+        FloorResourceRule(33..40, listOf(
+            WeightedResource(Iron, 31),
+            WeightedResource(Copper, 30),
+            WeightedResource(Lithium, 40)
+        )),
+        FloorResourceRule(41..46, listOf(
+            WeightedResource(Magnesium, 16),
+            WeightedResource(Aluminum, 15),
+            WeightedResource(Iron, 30),
+            WeightedResource(Gold, 20),
+            WeightedResource(Platinum, 20)
+        )),
+        FloorResourceRule(47..52, listOf(
+            WeightedResource(Magnesium, 16),
+            WeightedResource(Aluminum, 15),
+            WeightedResource(Iron, 30),
+            WeightedResource(Platinum, 20),
+            WeightedResource(Nickel, 20)
+        )),
+        FloorResourceRule(53..MAX_MINE_FLOOR, listOf(
+            WeightedResource(Magnesium, 16),
+            WeightedResource(Aluminum, 15),
+            WeightedResource(Iron, 30),
+            WeightedResource(Nickel, 20),
+            WeightedResource(Titanium, 20)
+        ))
+    )
+
     /** 초기화 or 로드 */
     fun reset() {
         if (mines.isNotEmpty()) {
@@ -137,60 +197,43 @@ object MineManager {
         val zOffset = calculateOffset(floor)
         mineType.resourcesLocations.forEach { (x, y, z) ->
             val location = Location(world, x, y, z - zOffset)
-            val type = getRandomForFloor(floor)
+            val type = getRandomResourceTypeForFloor(floor)
             val resource = Resource(type, location)
             resources.add(resource)
         }
     }
 
     /** 층 자원 확률 */
-    private fun getRandomForFloor(floor: Int): ResourceType {
-        val r = Random.nextInt(0, 101)
-        return when (floor) {
-            in 1..8 -> if (r < 33) Magnesium else Aluminum
-            in 9..16 -> when (r) {
-                in 0..30 -> Magnesium
-                in 31..60 -> Aluminum
-                else -> Iron
-            }
-            in 17..24 -> when (r) {
-                in 0..20 -> Magnesium
-                in 21..40 -> Aluminum
-                in 41..70 -> Iron
-                else -> Copper
-            }
-            in 25..32 -> when (r) {
-                0 -> Magnesium
-                1 -> Aluminum
-                in 2..30 -> Iron
-                in 31..50 -> Copper
-                else -> Lithium
-            }
-            in 33..40 -> when (r) {
-                in 0..30 -> Iron
-                in 31..60 -> Copper
-                else -> Lithium
-            }
-            in 41..46 -> when (r) {
-                in 0..15 -> Magnesium
-                in 16..30 -> Aluminum
-                in 31..60 -> Iron
-                in 61..80 -> Gold
-                else -> Platinum
-            }
-            in 47..52 -> when (r) {
-                in 0..15 -> Magnesium
-                in 16..30 -> Aluminum
-                in 31..60 -> Iron
-                in 61..80 -> Platinum
-                else -> Nickel
-            }
-            else -> when (r) {
-                in 0..15 -> Magnesium
-                in 16..30 -> Aluminum
-                in 31..60 -> Iron
-                in 61..80 -> Nickel
-                else -> Titanium
+    private fun getRandomResourceTypeForFloor(floor: Int): ResourceType {
+        return getRandomWeightedResourceForFloor(floor)
+            ?: error("Floor $floor has no resource drop rule")
+    }
+
+    private fun getRandomWeightedResourceForFloor(floor: Int): ResourceType? {
+        val rule = floorResourceRules.firstOrNull { floor in it.floors }
+            ?: floorResourceRules.last()
+        return pickByWeight(rule.entries)
+    }
+
+    private fun pickByWeight(entries: List<WeightedResource>): ResourceType? {
+        val totalWeight = entries.sumOf { it.weight }
+        if (totalWeight <= 0) return null
+
+        var roll = Random.nextInt(totalWeight)
+        for (entry in entries) {
+            roll -= entry.weight
+            if (roll < 0) return entry.type
+        }
+        return entries.lastOrNull()?.type
+    }
+
+    /** 몬스터 처치 시 드랍할 자원 아이템 */
+    fun createMonsterDropItemForFloor(floor: Int): ItemStack? {
+        val resourceType = getRandomWeightedResourceForFloor(floor) ?: return null
+        return ItemStack(Material.RED_DYE).apply {
+            itemMeta = itemMeta.apply {
+                displayName(miniMessage.deserialize(resourceType.displayName))
+                setCustomModelData(resourceType.customModelData)
             }
         }
     }
