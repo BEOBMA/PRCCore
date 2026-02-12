@@ -200,20 +200,20 @@ object FarmingManager {
 
         when (cmd) {
             WATERINGCAN_CUSTOM_MODEL_DATA -> {
-                spawnParticle(Particle.FALLING_WATER, block.location.clone().add(0.5, 1.0, 0.5), WATER_PARTICLE, 0.1, 0.1, 0.1, 1.0)
+                world.spawnParticle(Particle.FALLING_WATER, block.location.clone().add(0.5, 1.0, 0.5), WATER_PARTICLE, 0.1, 0.1, 0.1, 1.0)
                 fireMission(MissionVersion.V1,"FARMING", "farming_module", 1)
                 moistenFarmland(block)
             }
             PUMP_WATERINGCAN_CUSTOM_MODEL_DATA -> {
                 forEach3x3(block) { b ->
-                    spawnParticle(Particle.FALLING_WATER, b.location.clone().add(0.5, 1.0, 0.5), WATER_PARTICLE, 0.1, 0.1, 0.1, 1.0)
+                    world.spawnParticle(Particle.FALLING_WATER, b.location.clone().add(0.5, 1.0, 0.5), WATER_PARTICLE, 0.1, 0.1, 0.1, 1.0)
                     fireMission(MissionVersion.V1,"FARMING", "farming_module", 1)
                     moistenFarmland(b)
                 }
             }
         }
 
-        playSound(block.location, Sound.ITEM_BUCKET_EMPTY, 1.0f, 1.0f)
+        world.playSound(block.location, Sound.ITEM_BUCKET_EMPTY, 1.0f, 1.0f)
         hand.decreaseCustomDurability(1, this)
     }
 
@@ -323,13 +323,13 @@ object FarmingManager {
             addAdvancementInt(this, "module/normal/frederick_the_great", 200)
         }
 
-        if (plant.harvestAmount != 1) {
-            repeat(Random.nextInt(1, plant.harvestAmount + 1)) { addOneHarvest() }
+        if (plant.harvestAmountMin != plant.harvestAmountMax) {
+            repeat(Random.nextInt(plant.harvestAmountMin, plant.harvestAmountMax + 1)) { addOneHarvest() }
             removePlant(plant)
             return
         }
 
-        addOneHarvest()
+        repeat(plant.harvestAmountMax) { addOneHarvest() }
         removePlant(plant)
     }
 
@@ -402,40 +402,39 @@ object FarmingManager {
             status.weedsCount = 0
         }
 
-        if (status.capsuleType != CapsuleType.WeedKiller) {
-            var weedFound = false
-            var nonWeedFound = false
+        var weedFound = false
+        var nonWeedFound = false
 
-            loop@ for (x in (baseX - 1)..(baseX + 1)) {
-                for (z in (baseZ - 1)..(baseZ + 1)) {
-                    val cur = world.getBlockAt(x, baseY, z)
-                    if (cur.type != Material.FARMLAND) continue
-                    val adj = plantList.find { it.farmlandLocation?.block == cur } ?: continue
+        loop@ for (x in (baseX - 1)..(baseX + 1)) {
+            for (z in (baseZ - 1)..(baseZ + 1)) {
+                val cur = world.getBlockAt(x, baseY, z)
+                if (cur.type != Material.FARMLAND) continue
+                val adj = plantList.find { it.farmlandLocation?.block == cur } ?: continue
 
-                    if (adj.plantStatus.isWeeds) {
-                        weedFound = true
-                        break@loop
-                    } else {
-                        nonWeedFound = true
-                    }
+                if (adj.plantStatus.isWeeds) {
+                    weedFound = true
+                    break@loop
+                } else {
+                    nonWeedFound = true
                 }
             }
-
-            when {
-                weedFound -> {
-                    status.weedsCount++
-                    if (status.weedsCount > 2) wither()
-                }
-                nonWeedFound -> {
-                    // Growth 캡슐 가속 반영
-                    advance(accelerated = (status.capsuleType == CapsuleType.Growth))
-                }
-                else -> { /* 인접 식물 없음 */ }
-            }
-        } else {
-            // 제초제: 잡초 영향 무시
-            advance(accelerated = (status.capsuleType == CapsuleType.Growth))
         }
+
+        when {
+            weedFound -> {
+                status.weedsCount++
+                if (status.weedsCount > 2) wither()
+            }
+
+            nonWeedFound -> {
+                // Growth 캡슐 가속 반영
+                advance(accelerated = (status.capsuleType == CapsuleType.Growth))
+            }
+
+            else -> { /* 인접 식물 없음 */
+            }
+        }
+
 
         // 수분 소모
         farmland.moisture = 0

@@ -5,7 +5,7 @@ import org.beobma.prccore.plant.Plant
 import org.beobma.prccore.util.Season
 import org.bukkit.potion.PotionEffect
 
-class PotatoPlant : Plant("감자", 3, 3, 6, listOf(Season.Spring)), EatablePlants {
+class PotatoPlant : Plant("감자", 3, 3, 4, 6, listOf(Season.Spring)), EatablePlants {
     override val silverNutrition: Int = 3
     override val goldNutrition: Int = 4
     override val titaniumNutrition: Int = 5

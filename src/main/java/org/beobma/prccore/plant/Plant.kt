@@ -11,7 +11,8 @@ open class Plant(
     val name: String,
     var remainingGrowthDays: Int,
     val growthDays: Int,
-    val harvestAmount: Int,
+    val harvestAmountMin: Int,
+    val harvestAmountMax: Int,
     val growableSeasons: List<Season>,
     @Serializable(with = LocationSerializer::class)
     var farmlandLocation: Location? = null,
