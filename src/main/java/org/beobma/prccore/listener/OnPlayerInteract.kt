@@ -74,17 +74,19 @@ class OnPlayerInteract : Listener {
             return
         }
 
+        // 디버그 아이템
         if (item?.type == Material.CLOCK) {
             TimeManager.endOfDay()
             event.isCancelled = true
             return
         }
-
+        // 디버그 아이템
         if (item?.type == Material.BUCKET) {
             plantList.toList().forEach { player.removePlant(it) }
             event.isCancelled = true
             return
         }
+
 
 
         // 광산
@@ -187,10 +189,13 @@ class OnPlayerInteract : Listener {
     /** 광산 상호작용 처리 */
     private fun handleMine(player: Player, block: Block) {
         val mine = mines.find { it.players.contains(player) } ?: return
+
+        // 디버그 아이템
         if (player.inventory.itemInMainHand.type == Material.NETHERITE_INGOT) {
             player.approach(mine, mine.floor + 1)
             return
         }
+        // 디버그 아이템
         if (player.inventory.itemInMainHand.type == Material.NETHERITE_SWORD) {
             mine.enemys.forEach { enemy ->
                 val uuid = UUID.fromString(enemy.enemyUUID)

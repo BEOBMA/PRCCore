@@ -45,6 +45,7 @@ object MineManager {
     private val miniMessage = MiniMessage.miniMessage()
 
     val gatheringPlayers = mutableSetOf<UUID>()
+    private val resourceInteractingPlayers = mutableMapOf<String, UUID>()
 
     /** 드랍/생성 가중치 단위 */
     private data class WeightedResource(val type: ResourceType?, val weight: Int)
@@ -108,6 +109,7 @@ object MineManager {
 
     /** 초기화 or 로드 */
     fun reset() {
+        resourceInteractingPlayers.clear()
         if (mines.isNotEmpty()) {
             loadData()
             return
@@ -122,6 +124,7 @@ object MineManager {
 
     /** 다음날 */
     fun nextDay() {
+        resourceInteractingPlayers.clear()
         val start = System.currentTimeMillis()
 
         mines.toList().forEach { mine ->
@@ -141,6 +144,7 @@ object MineManager {
 
     /** 저장 데이터 적용 */
     fun loadData() {
+        resourceInteractingPlayers.clear()
         mines.forEach { mine ->
             mine.startBlockLocation?.block?.type = Material.BARRIER
             mine.exitBlockLocation?.block?.type = Material.BARRIER
@@ -261,6 +265,7 @@ object MineManager {
     fun Player.leaveMine(mine: Mine) {
         val exitLocation = DataManager.mineExitLocation ?: return
         mine.players.remove(this)
+        resourceInteractingPlayers.entries.removeIf { it.value == uniqueId }
         mine.removeVisuals()
         mine.enemys.filter { it.isSpawn && !it.isDead && it.enemyUUID != null }.forEach {
             it.isSpawn = false
@@ -269,34 +274,34 @@ object MineManager {
         teleport(exitLocation)
     }
 
-    /** 적 스폰 */
-    private fun Mine.spawnEnemys() {
-        enemys.filter { !it.isSpawn && !it.isDead }.forEach {
-            val entity = world.spawnEntity(it.location, it.entityType)
-            it.isSpawn = true
-            it.enemyUUID = entity.uniqueId.toString()
-        }
-    }
-
     /** 자원 채굴 */
     fun Player.gathering(resource: Resource) {
         if (resource.isGathering || gatheringPlayers.contains(this.uniqueId)) return
+        val resourceKey = resource.getInteractionKey()
+        val interactingPlayer = resourceInteractingPlayers[resourceKey]
+        if (interactingPlayer != null && interactingPlayer != uniqueId) return
+
 
         val mainHand = inventory.itemInMainHand
         if (!mainHand.hasCustomModelData(PICKAXE_MODEL_DATAS, Material.WOODEN_SHOVEL)) return
 
         val mine = mines.find { it.players.contains(this) } ?: return
         val delay = getGatheringDelay(mainHand, resource.resourcesType) ?: return
+        val totalTicks = delay.toDouble().coerceAtLeast(1.0)
+        var elapsedTicks = 0.0
 
         gatheringPlayers.add(uniqueId)
+        resourceInteractingPlayers[resourceKey] = uniqueId
 
         // 타격 사운드/파티클 반복
         val soundTask = Bukkit.getScheduler().runTaskTimer(
             PrcCore.instance,
             Runnable {
-                playSound(location, Sound.BLOCK_STONE_HIT, 1f, 1f)
+                elapsedTicks = (elapsedTicks + TICKINTERVAL).coerceAtMost(totalTicks)
+                sendActionBar(miniMessage.deserialize(getGatheringProgressBar(elapsedTicks / totalTicks)))
+                world.playSound(location, Sound.BLOCK_STONE_HIT, 1f, 1f)
                 world.spawnParticle(
-                    Particle.BLOCK, resource.location, 10,
+                    Particle.BLOCK, resource.location.clone().add(0.5, 0.5, 0.5), 10,
                     0.2, 0.2, 0.2, Material.STONE.createBlockData()
                 )
             },
@@ -307,6 +312,7 @@ object MineManager {
         Bukkit.getScheduler().runTaskLater(PrcCore.instance, Runnable {
             soundTask.cancel()
 
+            sendActionBar(miniMessage.deserialize(""))
             val itemStack = ItemStack(Material.RED_DYE).apply {
                 itemMeta = itemMeta.apply {
                     displayName(miniMessage.deserialize(resource.resourcesType.displayName))
@@ -319,13 +325,24 @@ object MineManager {
             )
 
             resource.getItemDisplay()?.remove()
+            resource.isGathering = true
+            resourceInteractingPlayers.remove(resourceKey)
+            resource.location.block.type = Material.AIR
 
-            inventory.addItem(itemStack)
+            val dropLoc = resource.location.clone().add(0.5, 0.3, 0.5)
+            val dropped = dropLoc.world?.dropItem(dropLoc, itemStack)
+            dropped?.pickupDelay = 0
             resource.isGathering = true
             resource.location.block.type = Material.AIR
 
             playSound(location, Sound.BLOCK_STONE_BREAK, 1f, 1f)
             world.spawnParticle(Particle.BLOCK, resource.location, 30, 0.3, 0.3, 0.3, Material.STONE.createBlockData())
+
+            if (isHeavyDrill(mainHand)) {
+                world.spawnParticle(Particle.EXPLOSION, resource.location.clone().add(0.5, 0.5, 0.5), 1, 0.1, 0.1, 0.1, 0.0)
+                playSound(resource.location, Sound.ENTITY_GENERIC_EXPLODE, 0.4f, 1.1f)
+            }
+
 
             val gathered = mine.resources.count { it.isGathering }
             if (mine.exitBlockLocation == null && gathered >= ceil(mine.resources.size * 0.7).toInt()) {
@@ -338,6 +355,11 @@ object MineManager {
             gatheringPlayers.remove(uniqueId)
             inventory.itemInMainHand.decreaseCustomDurability(1, this)
         }, delay)
+    }
+
+    private fun Resource.getInteractionKey(): String {
+        val blockLocation = location.toBlockLocation()
+        return "${blockLocation.world?.name}:${blockLocation.blockX}:${blockLocation.blockY}:${blockLocation.blockZ}"
     }
 
     /** 채집 지연 시간 */
@@ -381,8 +403,19 @@ object MineManager {
     /** 경량 드릴 판정 */
     fun isLightDrill(item: ItemStack): Boolean = item.hasCustomModelData(LIGHTDRILL_MODEL_DATA, Material.WOODEN_SHOVEL)
 
-    /** 중량 드릴 판정 */
+    /** 무거운 드릴 판정 */
     fun isHeavyDrill(item: ItemStack): Boolean = item.hasCustomModelData(HEAVYDRILL_MODEL_DATA, Material.WOODEN_SHOVEL)
+
+    /** 채굴 진행도 바 */
+    private fun getGatheringProgressBar(progress: Double): String {
+        val clamped = progress.coerceIn(0.0, 1.0)
+        val total = 20
+        val filled = (clamped * total).toInt()
+        val percent = (clamped * 100).toInt()
+        val bar = "<green>${"|".repeat(filled)}</green><dark_gray>${"|".repeat(total - filled)}</dark_gray>"
+        return "<gray>채굴 진행도</gray> $bar <yellow>$percent%</yellow>"
+    }
+
 
     /** 층 선택 인벤토리 */
     fun showMineFloorSelector(player: Player) {
@@ -548,7 +581,19 @@ object MineManager {
         enemys
             .filter { !it.isSpawn && !it.isDead }
             .forEach { enemy ->
-            val entity = world.spawnEntity(enemy.location, EntityType.ZOMBIE) as LivingEntity
+                val entity = world.spawnEntity(enemy.location, EntityType.ZOMBIE) as Zombie
+
+                entity.setAdult()
+                entity.canPickupItems = false
+                entity.equipment.apply {
+                    clear()
+                    helmetDropChance = 0f
+                    chestplateDropChance = 0f
+                    leggingsDropChance = 0f
+                    bootsDropChance = 0f
+                    itemInMainHandDropChance = 0f
+                    itemInOffHandDropChance = 0f
+                }
 
             entity.addPotionEffect(
                 PotionEffect(
@@ -567,15 +612,6 @@ object MineManager {
             enemy.isSpawn = true
             enemy.enemyUUID = entity.uniqueId.toString()
         }
-    }
-    /** 마커 범위 내에 소환된 엔티티 반환 */
-    private fun getMarkerNearbyLocation(location: Location): Entity? {
-        for (entity in location.world.getNearbyEntities(location, 2.0, 2.0, 2.0)) {
-            if (entity.scoreboardTags.contains("semi.zombie")) {
-                return entity
-            }
-        }
-        return null
     }
 
     /** 아이템 디스플레이 제거 */
