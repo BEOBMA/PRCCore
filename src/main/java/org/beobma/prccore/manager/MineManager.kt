@@ -6,7 +6,6 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import org.beobma.prccore.PrcCore
 import org.beobma.prccore.entity.Enemy
 import org.beobma.prccore.manager.AdvancementManager.grantAdvancement
-import org.beobma.prccore.manager.CustomModelDataManager.getCustomModelData
 import org.beobma.prccore.manager.CustomModelDataManager.hasCustomModelData
 import org.beobma.prccore.manager.DataManager.gameData
 import org.beobma.prccore.manager.DataManager.mines
@@ -40,6 +39,7 @@ object MineManager {
     private const val MAX_MINE_FLOOR = 60
     private const val CALCULATE_OFFSET = 160.0
     private const val TICKINTERVAL = 10L
+    private const val MAX_GATHERING_DISTANCE_SQUARED = 16.0
 
     private val world = Bukkit.getWorlds().first()
     private val miniMessage = MiniMessage.miniMessage()
@@ -290,13 +290,39 @@ object MineManager {
         val totalTicks = delay.toDouble().coerceAtLeast(1.0)
         var elapsedTicks = 0.0
 
+        var cancelled = false
+
+        fun cancelGathering() {
+            if (cancelled) return
+            cancelled = true
+            gatheringPlayers.remove(uniqueId)
+            resourceInteractingPlayers.remove(resourceKey)
+            sendActionBar(miniMessage.deserialize(""))
+        }
+
+        fun canKeepGathering(): Boolean {
+            val currentMine = mines.find { it.players.contains(this) } ?: return false
+            if (currentMine != mine) return false
+            if (!isOnline || isDead) return false
+            if (world != resource.location.world) return false
+            return location.distanceSquared(resource.location.clone().add(0.5, 0.5, 0.5)) <= MAX_GATHERING_DISTANCE_SQUARED
+        }
+
+        var soundTask: org.bukkit.scheduler.BukkitTask? = null
+
         gatheringPlayers.add(uniqueId)
         resourceInteractingPlayers[resourceKey] = uniqueId
 
         // 타격 사운드/파티클 반복
-        val soundTask = Bukkit.getScheduler().runTaskTimer(
+        soundTask = Bukkit.getScheduler().runTaskTimer(
             PrcCore.instance,
             Runnable {
+                if (!canKeepGathering()) {
+                    soundTask?.cancel()
+                    cancelGathering()
+                    return@Runnable
+                }
+
                 elapsedTicks = (elapsedTicks + TICKINTERVAL).coerceAtMost(totalTicks)
                 sendActionBar(miniMessage.deserialize(getGatheringProgressBar(elapsedTicks / totalTicks)))
                 world.playSound(location, Sound.BLOCK_STONE_HIT, 1f, 1f)
@@ -311,6 +337,11 @@ object MineManager {
         // 지연 완료 후 채집 완료 처리
         Bukkit.getScheduler().runTaskLater(PrcCore.instance, Runnable {
             soundTask.cancel()
+
+            if (!canKeepGathering()) {
+                cancelGathering()
+                return@Runnable
+            }
 
             sendActionBar(miniMessage.deserialize(""))
             val itemStack = ItemStack(Material.RED_DYE).apply {
@@ -353,6 +384,7 @@ object MineManager {
             }
 
             gatheringPlayers.remove(uniqueId)
+            cancelGathering()
             inventory.itemInMainHand.decreaseCustomDurability(1, this)
         }, delay)
     }
