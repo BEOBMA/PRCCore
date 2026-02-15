@@ -37,7 +37,7 @@ import kotlin.random.Random
 
 object MineManager {
     private const val MAX_MINE_FLOOR = 60
-    private const val CALCULATE_OFFSET = 160.0
+    private const val CALCULATE_OFFSET = 480.0
     private const val TICKINTERVAL = 10L
     private const val MAX_GATHERING_DISTANCE_SQUARED = 16.0
 
@@ -660,7 +660,8 @@ object MineManager {
     /** 광산 일괄 생성 */
     private fun generateMines(): List<Mine> {
         val templates = arrayOf(MineTemplate.M, MineTemplate.N, MineTemplate.R)
-        val types = arrayOf(MineType.A, MineType.B, MineType.C, MineType.D, MineType.E)
+        val types = arrayOf(MineType.A, MineType.B, MineType.C, MineType.D, MineType.E, MineType.F, MineType.G, MineType.H, MineType.I, MineType.J, MineType.K,
+            MineType.L, MineType.M, MineType.N, MineType.O)
 
         return (1..MAX_MINE_FLOOR).map { floor ->
             val template = templates[(floor - 1) / 5 % templates.size]

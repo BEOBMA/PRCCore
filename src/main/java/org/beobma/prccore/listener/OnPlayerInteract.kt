@@ -87,8 +87,6 @@ class OnPlayerInteract : Listener {
             return
         }
 
-
-
         // 광산
         if (mines.any { it.players.contains(player) }) {
             handleMine(player, block)
