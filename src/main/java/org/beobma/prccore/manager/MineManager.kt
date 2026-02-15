@@ -655,7 +655,7 @@ object MineManager {
     }
 
     /** 층수 오프셋 계산 */
-    private fun calculateOffset(floor: Int): Double = ((floor - 1) / 5) * CALCULATE_OFFSET
+    private fun calculateOffset(floor: Int): Double = ((floor - 1) / 15) * CALCULATE_OFFSET
 
     /** 광산 일괄 생성 */
     private fun generateMines(): List<Mine> {
