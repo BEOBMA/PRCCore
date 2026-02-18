@@ -235,12 +235,7 @@ object MineManager {
     /** 몬스터 처치 시 드랍할 자원 아이템 */
     fun createMonsterDropItemForFloor(floor: Int): ItemStack? {
         val resourceType = getRandomWeightedResourceForFloor(floor) ?: return null
-        return ItemStack(Material.RED_DYE).apply {
-            itemMeta = itemMeta.apply {
-                displayName(miniMessage.deserialize(resourceType.displayName))
-                setCustomModelData(resourceType.customModelData)
-            }
-        }
+        return resourceType.prcItem.create()
     }
 
     /** 적 배치 데이터 */
@@ -345,12 +340,7 @@ object MineManager {
             }
 
             sendActionBar(miniMessage.deserialize(""))
-            val itemStack = ItemStack(Material.RED_DYE).apply {
-                itemMeta = itemMeta.apply {
-                    displayName(miniMessage.deserialize(resource.resourcesType.displayName))
-                    setCustomModelData(resource.resourcesType.customModelData)
-                }
-            }
+            val itemStack = resource.resourcesType.prcItem.create()
 
             Bukkit.getPluginManager().callEvent(
                 MissionEvent(this, MissionVersion.V2, "PLAYER_PROGRESS", "mine_module", 1)
@@ -603,7 +593,7 @@ object MineManager {
             resource.uuidString = itemDisplay.uniqueId.toString()
 
             val itemStack = ItemStack(Material.GRAY_DYE).apply {
-                itemMeta = itemMeta.apply { setCustomModelData(resource.resourcesType.customModelData) }
+                itemMeta = itemMeta.apply { setCustomModelData(resource.resourcesType.prcItem.customModelData) }
             }
             itemDisplay.setItemStack(itemStack)
         }

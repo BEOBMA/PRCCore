@@ -1,16 +1,18 @@
 package org.beobma.prccore.resource
 
+import kr.eme.prcShop.api.PRCItem
+import kr.eme.prcShop.api.PRCItems
+
 enum class ResourceType(
-    val displayName: String,
-    val customModelData: Int
+    val prcItem: PRCItem
 ) {
-    Lithium("리튬", 5),
-    Magnesium("마그네슘", 1),
-    Nickel("니켈", 8),
-    Platinum("백금", 7),
-    Aluminum("알루미늄", 2),
-    Gold("금", 6),
-    Copper("구리", 4),
-    Iron("철", 3),
-    Titanium("티타늄", 9);
+    Lithium(PRCItems.LITHIUM),
+    Magnesium(PRCItems.MAGNESIUM),
+    Nickel(PRCItems.NICKEL),
+    Platinum(PRCItems.PLATINUM),
+    Aluminum(PRCItems.ALUMINUM),
+    Gold(PRCItems.GOLD),
+    Copper(PRCItems.COPPER),
+    Iron(PRCItems.IRON),
+    Titanium(PRCItems.TITANIUM);
 }
