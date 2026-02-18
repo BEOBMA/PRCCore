@@ -40,7 +40,7 @@ object MineManager {
     private const val MAX_MINE_FLOOR = 60
     private const val CALCULATE_OFFSET = 480.0
     private const val TICKINTERVAL = 10L
-    private const val MAX_GATHERING_DISTANCE_SQUARED = 32.0
+    private const val MAX_GATHERING_DISTANCE_SQUARED = 40.0
 
     private val world = Bukkit.getWorlds().first()
     private val miniMessage = MiniMessage.miniMessage()

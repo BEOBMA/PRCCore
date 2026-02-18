@@ -317,7 +317,10 @@ object FarmingManager {
             item.setData(DataComponentTypes.FOOD, food)
             item.setData(DataComponentTypes.CONSUMABLE, consumable)
 
-            inventory.addItem(item)
+            val farmlandLocation = plant.farmlandLocation ?: return
+            val dropLoc = farmlandLocation.clone().add(0.5, 0.5, 0.5)
+            val dropped = dropLoc.world?.dropItem(dropLoc, item)
+            dropped?.pickupDelay = 0
 
             // 작물 200개 수확
             addAdvancementInt(this, "module/normal/frederick_the_great", 200)
