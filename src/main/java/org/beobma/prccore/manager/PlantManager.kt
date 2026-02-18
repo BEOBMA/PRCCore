@@ -1,5 +1,6 @@
 package org.beobma.prccore.manager
 
+import kr.eme.prcShop.api.PRCItem
 import org.beobma.prccore.manager.UtilManager.miniMessage
 import org.beobma.prccore.plant.Plant
 import org.bukkit.Bukkit
@@ -12,45 +13,37 @@ object PlantManager {
     const val PLANT_STAR_ICON_OFFSET: Int = 10
 
     private val plantFactories: MutableMap<Plant, () -> Plant> = mutableMapOf()
+    val plantPRCSeedItemMap: MutableMap<Plant, PRCItem> = mutableMapOf()
+    val plantPRCG1ItemMap: MutableMap<Plant, PRCItem> = mutableMapOf()
+    val plantPRCG2ItemMap: MutableMap<Plant, PRCItem> = mutableMapOf()
+    val plantPRCG3ItemMap: MutableMap<Plant, PRCItem> = mutableMapOf()
     val plantSeedIcons: MutableMap<Plant, Int> = mutableMapOf()
     val plantAgIcons: MutableMap<Plant, Int> = mutableMapOf()
     val plantModels: MutableMap<Plant, Int> = mutableMapOf()
 
     /** 식물 등록 */
-    fun Plant.register(clazz: Class<out Plant>, seedIconCustomModelData: Int, agIconCustomModelData: Int, modelData: Int) {
+    fun Plant.register(clazz: Class<out Plant>, seedIconCustomModelData: Int, agIconCustomModelData: Int, modelData: Int, prcSeedItem: PRCItem, prcG1Item: PRCItem, prcG2Item: PRCItem, prcG3Item: PRCItem) {
         plantFactories[this] = { clazz.getDeclaredConstructor().newInstance() }
         plantSeedIcons[this] = seedIconCustomModelData
         plantAgIcons[this] = agIconCustomModelData
         plantModels[this] = modelData
+        plantPRCSeedItemMap[this] = prcSeedItem
+        plantPRCG1ItemMap[this] = prcG1Item
+        plantPRCG2ItemMap[this] = prcG2Item
+        plantPRCG3ItemMap[this] = prcG3Item
     }
 
     /** 씨앗 아이템 생성 */
     fun Plant.getSeedItem(): ItemStack {
-        val registeredPlant = getRegisterPlants().find { it.name == name }
-        val seedIcon = plantSeedIcons[registeredPlant]
-        val seasonTexts = growableSeasons.joinToString(", ") { it.text }
-        val itemStack = ItemStack(Material.BLACK_DYE, 1).apply {
-            itemMeta = itemMeta.apply {
-                displayName(miniMessage.deserialize("$name 씨앗"))
-                lore(
-                    listOf(
-                        miniMessage.deserialize("<gray>$seasonTexts 작물"),
-                        miniMessage.deserialize("<gray>재배까지 총 ${remainingGrowthDays}일 소요")
-                    )
-                )
-                setCustomModelData(seedIcon)
-            }
-        }
+        val prcItem = plantPRCSeedItemMap[this] ?: return ItemStack(Material.AIR)
+        val itemStack = prcItem.create()
         return itemStack
     }
 
     /** 수확물 아이템 생성 */
     fun Plant.getHarvestItem(): ItemStack {
-        val itemStack = ItemStack(Material.BLACK_DYE, 1).apply {
-            itemMeta = itemMeta.apply {
-                displayName(miniMessage.deserialize(name))
-            }
-        }
+        val prcItem = plantPRCG1ItemMap[this] ?: return ItemStack(Material.AIR)
+        val itemStack = prcItem.create()
         return itemStack
     }
 
