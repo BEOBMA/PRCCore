@@ -13,7 +13,6 @@ class Weapon {
             listOf(MiniMessage.miniMessage().deserialize("<gray>무기로는 형편없지만, 쓸만하다."))
         )
         meta.setCustomModelData(10)
-        meta.isUnbreakable = true
         itemMeta = meta
     }
 
@@ -24,7 +23,6 @@ class Weapon {
             listOf(MiniMessage.miniMessage().deserialize("<gray>적을 쓰러트리기에 적절한 무기."))
         )
         meta.setCustomModelData(11)
-        meta.isUnbreakable = true
         itemMeta = meta
     }
 
@@ -35,7 +33,6 @@ class Weapon {
             listOf(MiniMessage.miniMessage().deserialize("<gray>긴 사거리를 가진 장도."))
         )
         meta.setCustomModelData(12)
-        meta.isUnbreakable = true
         itemMeta = meta
     }
 

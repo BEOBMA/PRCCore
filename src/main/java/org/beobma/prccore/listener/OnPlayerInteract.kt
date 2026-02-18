@@ -35,7 +35,11 @@ import org.beobma.prccore.manager.ToolManager.WEED_KILLER_CAPSULE_MODEL_DATA
 import org.beobma.prccore.manager.ToolManager.decreaseCustomDurability
 import org.beobma.prccore.manager.ToolManager.getCurrentCustomDurability
 import org.beobma.prccore.plant.Plant
+import org.beobma.prccore.tool.Capsule
 import org.beobma.prccore.tool.CapsuleType
+import org.beobma.prccore.tool.Hoe
+import org.beobma.prccore.tool.Pickaxe
+import org.beobma.prccore.tool.WateringCan
 import org.bukkit.Bukkit.getEntity
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -83,6 +87,39 @@ class OnPlayerInteract : Listener {
         // 디버그 아이템
         if (item?.type == Material.BUCKET) {
             plantList.toList().forEach { player.removePlant(it) }
+            event.isCancelled = true
+            return
+        }
+        // 디버그 아이템
+        if (item?.type == Material.TOTEM_OF_UNDYING) {
+            showMineFloorSelector(player)
+            event.isCancelled = true
+            return
+        }
+        // 디버그 아이템
+        if (item?.type == Material.BUNDLE) {
+            val inventory = event.player.inventory
+            Hoe().hoes.forEach {
+                inventory.addItem(it)
+            }
+
+            val capsule = Capsule()
+            inventory.addItem(capsule.capsuleGun)
+            capsule.capsules.forEach {
+                inventory.addItem(it)
+            }
+
+            WateringCan().wateringCans.forEach {
+                inventory.addItem(it)
+            }
+
+            Pickaxe().pickaxes.forEach {
+                inventory.addItem(it)
+            }
+
+            getRegisterPlants().forEach {
+                inventory.addItem(it.getSeedItem())
+            }
             event.isCancelled = true
             return
         }
@@ -204,7 +241,7 @@ class OnPlayerInteract : Listener {
         }
         when (block) {
             mine.exitBlockLocation?.block -> player.approach(mine, mine.floor + 1)
-            mine.startBlockLocation?.block -> player.approach(mine, mine.floor - 1, true)
+            mine.startBlockLocation?.block -> player.approach(mine, 0, true)
             else -> {
                 if (player.inventory.itemInMainHand.type != Material.WOODEN_SHOVEL) return
                 mines.find { it == mine }?.resources

@@ -22,6 +22,7 @@ import org.beobma.prccore.resource.ResourceType
 import org.beobma.prccore.resource.ResourceType.*
 import org.bukkit.*
 import org.bukkit.block.Block
+import org.bukkit.block.BlockFace
 import org.bukkit.entity.*
 import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
@@ -39,7 +40,7 @@ object MineManager {
     private const val MAX_MINE_FLOOR = 60
     private const val CALCULATE_OFFSET = 480.0
     private const val TICKINTERVAL = 10L
-    private const val MAX_GATHERING_DISTANCE_SQUARED = 16.0
+    private const val MAX_GATHERING_DISTANCE_SQUARED = 32.0
 
     private val world = Bukkit.getWorlds().first()
     private val miniMessage = MiniMessage.miniMessage()
@@ -376,10 +377,18 @@ object MineManager {
 
 
             val gathered = mine.resources.count { it.isGathering }
-            if (mine.exitBlockLocation == null && gathered >= ceil(mine.resources.size * 0.7).toInt()) {
+            if (mine.exitBlockLocation == null && gathered >= ceil(mine.resources.size * 0.1).toInt()) {
                 if (mine.floor < MAX_MINE_FLOOR) {
-                    resource.location.block.setExit(mine)
-                    if (gameData.maxMineFloor < mine.floor) gameData.maxMineFloor = mine.floor
+                    if (resource.location.block.getRelative(BlockFace.DOWN).type != Material.AIR) {
+                        resource.location.block.setExit(mine)
+                        if (gameData.maxMineFloor < mine.floor) gameData.maxMineFloor = mine.floor
+                    }
+                    else {
+                        mine.players.forEach { player ->
+                            player.sendMessage(miniMessage.deserialize("광산 출구가 입구 주변에 나타났습니다."))
+                        }
+                        mine.startBlockLocation?.clone()?.add(1.0, 0.0, 0.0)?.block?.setExit(mine)
+                    }
                 }
             }
 
