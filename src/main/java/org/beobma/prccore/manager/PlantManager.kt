@@ -35,14 +35,16 @@ object PlantManager {
 
     /** 씨앗 아이템 생성 */
     fun Plant.getSeedItem(): ItemStack {
-        val prcItem = plantPRCSeedItemMap[this] ?: return ItemStack(Material.AIR)
+        val registeredPlant = getRegisteredPlant(this) ?: return ItemStack(Material.AIR)
+        val prcItem = plantPRCSeedItemMap[registeredPlant] ?: return ItemStack(Material.AIR)
         val itemStack = prcItem.create()
         return itemStack
     }
 
     /** 수확물 아이템 생성 */
     fun Plant.getHarvestItem(): ItemStack {
-        val prcItem = plantPRCG1ItemMap[this] ?: return ItemStack(Material.AIR)
+        val registeredPlant = getRegisteredPlant(this) ?: return ItemStack(Material.AIR)
+        val prcItem = plantPRCG1ItemMap[registeredPlant] ?: return ItemStack(Material.AIR)
         val itemStack = prcItem.create()
         return itemStack
     }
@@ -50,6 +52,11 @@ object PlantManager {
     /** 인스턴스 생성 */
     fun getPlantInstance(plant: Plant): Plant {
         return plantFactories[plant]!!.invoke()
+    }
+
+    /** 등록된 식물 원형 조회 (클래스 기준) */
+    fun getRegisteredPlant(plant: Plant): Plant? {
+        return plantFactories.keys.find { it::class.java == plant::class.java }
     }
 
     /** 등록 식물 목록 */
