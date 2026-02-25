@@ -202,6 +202,7 @@ object MineManager {
         val zOffset = calculateOffset(floor)
         mineType.resourcesLocations.forEach { (x, y, z) ->
             val location = Location(world, x, y, z - zOffset)
+            if (location.block.getRelative(BlockFace.DOWN).type == Material.AIR) return@forEach
             val type = getRandomResourceTypeForFloor(floor)
             val resource = Resource(type, location)
             resources.add(resource)
