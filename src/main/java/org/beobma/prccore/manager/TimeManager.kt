@@ -126,7 +126,7 @@ object TimeManager {
     fun sendLateNightReminder() {
         if ((gameData.hour == 22 && gameData.minute == 0) || (gameData.hour == 23 && gameData.minute == 0)) {
             playerList.forEach { player ->
-                player.sendActionBar(
+                player.sendMessage(
                     MiniMessage.miniMessage().deserialize(
                         "<bold>곧 12시입니다. 11시 50분까지 홈 모듈로 복귀하지 않으면 강제로 홈 모듈로 이동됩니다."
                     )

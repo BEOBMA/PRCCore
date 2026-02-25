@@ -367,7 +367,8 @@ object MineManager {
 
 
             val gathered = mine.resources.count { it.isGathering }
-            if (mine.exitBlockLocation == null && gathered >= ceil(mine.resources.size * 0.1).toInt()) {
+            // 출구가 등장할 비율
+            if (mine.exitBlockLocation == null && gathered >= ceil(mine.resources.size * 0.7).toInt()) {
                 if (mine.floor < MAX_MINE_FLOOR) {
                     if (resource.location.block.getRelative(BlockFace.DOWN).type != Material.AIR) {
                         resource.location.block.setExit(mine)
@@ -612,7 +613,7 @@ object MineManager {
         enemys
             .filter { !it.isSpawn && !it.isDead }
             .forEach { enemy ->
-                val entity = world.spawnEntity(enemy.location, EntityType.ZOMBIE) as Zombie
+                val entity = world.spawnEntity(enemy.location.clone().add(0.5, 0.5, 0.5), EntityType.ZOMBIE) as Zombie
 
                 entity.setAdult()
                 entity.canPickupItems = false

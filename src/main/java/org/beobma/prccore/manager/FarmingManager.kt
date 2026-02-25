@@ -169,8 +169,6 @@ object FarmingManager {
         block.type = Material.FARMLAND
         interactionFarmlands.add(block.location)
         fireMission(MissionVersion.V2, "PLAYER_PROGRESS", "farming_module", 1)
-        // 300회 경작 미션 문제
-        // 300회 카운트를 어느 플러그인에서 해야할지.
     }
 
     /** 자동화 괭이 */

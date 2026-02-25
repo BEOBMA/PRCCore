@@ -22,6 +22,7 @@ class OnInventoryClick : Listener {
 
         if (view.title() == miniMessage.deserialize("<white>\u340F\u3442")) {
             event.isCancelled = true
+            if (event.clickedInventory != view.topInventory) return
             if (displayName == null) return
             val displayName = LegacyComponentSerializer.legacySection().serialize(displayName)
             val floor = Regex("""(\d+)층""").find(displayName)?.groupValues?.get(1)?.toIntOrNull() ?: return
