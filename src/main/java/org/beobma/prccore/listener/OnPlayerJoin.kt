@@ -4,6 +4,7 @@ import org.beobma.prccore.manager.DataManager.playerList
 import org.beobma.prccore.manager.TimeManager.handleEndOfDayWarnings
 import org.beobma.prccore.manager.TimeManager.sendLateNightReminder
 import org.beobma.prccore.manager.TimeManager.showTimeBossBar
+import org.beobma.prccore.manager.TimeManager.hasStartedTimeFlow
 import org.beobma.prccore.manager.TimeManager.timePlay
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -18,6 +19,8 @@ class OnPlayerJoin : Listener {
         showTimeBossBar(player)
         sendLateNightReminder()
         handleEndOfDayWarnings()
-        timePlay()
+        if (hasStartedTimeFlow()) {
+            timePlay()
+        }
     }
 }
