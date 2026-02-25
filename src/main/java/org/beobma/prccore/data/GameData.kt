@@ -10,5 +10,6 @@ data class GameData(
     var minute: Int,
     var season: Season,
     var day: Int,
-    var maxMineFloor: Int = 1
+    var maxMineFloor: Int = 1,
+    var hasStartedTimeFlow: Boolean = false
 )

@@ -1,7 +1,9 @@
 package org.beobma.prccore
 
 import kr.eme.prcShop.api.PRCItems
+import org.beobma.prccore.command.StartTimeFlowCommand
 import org.beobma.prccore.listener.*
+import org.beobma.prccore.manager.DataManager.gameData
 import org.beobma.prccore.manager.DataManager.loadAll
 import org.beobma.prccore.manager.DataManager.mines
 import org.beobma.prccore.manager.DataManager.playerList
@@ -9,7 +11,9 @@ import org.beobma.prccore.manager.DataManager.saveAll
 import org.beobma.prccore.manager.MineManager
 import org.beobma.prccore.manager.MineManager.leaveMine
 import org.beobma.prccore.manager.PlantManager.register
+import org.beobma.prccore.manager.TimeManager.showTimeBossBar
 import org.beobma.prccore.manager.TimeManager.timePause
+import org.beobma.prccore.manager.TimeManager.timePlay
 import org.beobma.prccore.plant.list.*
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -24,10 +28,16 @@ class PrcCore : JavaPlugin() {
     override fun onEnable() {
         instance = this
         registerEvents()
+        registerCommands()
         registerPlants()
         loadAll()
         MineManager.reset()
         playerList.addAll(Bukkit.getOnlinePlayers())
+        playerList.forEach { showTimeBossBar(it) }
+
+        if (gameData.hasStartedTimeFlow && playerList.isNotEmpty()) {
+            timePlay()
+        }
         loggerMessage("PrcCore Plugin Enable")
     }
 
@@ -42,6 +52,10 @@ class PrcCore : JavaPlugin() {
         saveAll()
 
         loggerMessage("PrcCore Plugin Disable")
+    }
+
+    private fun registerCommands() {
+        getCommand("starttimeflow")?.setExecutor(StartTimeFlowCommand())
     }
 
     private fun registerEvents() {

@@ -26,7 +26,16 @@ import org.bukkit.scheduler.BukkitTask
 object TimeManager {
     private var timeTask: BukkitTask? = null
 
+    fun hasStartedTimeFlow(): Boolean = gameData.hasStartedTimeFlow
+
+    fun startTimeFlow() {
+        if (gameData.hasStartedTimeFlow) return
+        gameData.hasStartedTimeFlow = true
+        timePlay()
+    }
+
     fun timePlay() {
+        if (!gameData.hasStartedTimeFlow) return
         if (timeTask != null) return
         timeTask = object : BukkitRunnable() {
             override fun run() {

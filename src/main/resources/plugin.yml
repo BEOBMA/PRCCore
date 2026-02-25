@@ -2,3 +2,11 @@ name: PrcCore
 version: '${version}'
 main: org.beobma.prccore.PrcCore
 api-version: '1.20'
+commands:
+  starttimeflow:
+    description: 튜토리얼 종료 후 시간 흐름을 시작합니다.
+    usage: /starttimeflow
+    permission: prccore.command.starttimeflow
+permissions:
+  prccore.command.starttimeflow:
+    default: op
