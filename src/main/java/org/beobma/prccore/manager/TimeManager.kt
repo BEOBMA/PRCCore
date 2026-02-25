@@ -124,31 +124,29 @@ object TimeManager {
 
 
     fun sendLateNightReminder() {
-        // TODO(테스트)
-//        if ((gameData.hour == 22 && gameData.minute == 0) || (gameData.hour == 23 && gameData.minute == 0)) {
-//            playerList.forEach { player ->
-//                player.sendActionBar(
-//                    MiniMessage.miniMessage().deserialize(
-//                        "<bold>곧 12시입니다. 11시 50분까지 홈 모듈로 복귀하지 않으면 강제로 홈 모듈로 이동됩니다."
-//                    )
-//                )
-//            }
-//        }
+        if ((gameData.hour == 22 && gameData.minute == 0) || (gameData.hour == 23 && gameData.minute == 0)) {
+            playerList.forEach { player ->
+                player.sendActionBar(
+                    MiniMessage.miniMessage().deserialize(
+                        "<bold>곧 12시입니다. 11시 50분까지 홈 모듈로 복귀하지 않으면 강제로 홈 모듈로 이동됩니다."
+                    )
+                )
+            }
+        }
     }
 
     fun handleEndOfDayWarnings() {
-        // TODO(테스트)
-//        if ((gameData.hour == 22 && gameData.minute == 0)) {
-//            playerList.forEach { player ->
-//                player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 0, true, true, true))
-//                player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 0, true, true, true))
-//            }
-//        }
-//        else if ((gameData.hour == 23 && gameData.minute == 0)) {
-//            playerList.forEach { player ->
-//                player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 1, true, true, true))
-//                player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 1, true, true, true))
-//            }
-//        }
+        if ((gameData.hour == 22 && gameData.minute == 0)) {
+            playerList.forEach { player ->
+                player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 0, true, true, true))
+                player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 0, true, true, true))
+            }
+        }
+        else if ((gameData.hour == 23 && gameData.minute == 0)) {
+            playerList.forEach { player ->
+                player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 1, true, true, true))
+                player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 1, true, true, true))
+            }
+        }
     }
 }

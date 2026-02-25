@@ -78,52 +78,6 @@ class OnPlayerInteract : Listener {
             return
         }
 
-        // 디버그 아이템
-        if (item?.type == Material.CLOCK) {
-            TimeManager.endOfDay()
-            event.isCancelled = true
-            return
-        }
-        // 디버그 아이템
-        if (item?.type == Material.BUCKET) {
-            plantList.toList().forEach { player.removePlant(it) }
-            event.isCancelled = true
-            return
-        }
-        // 디버그 아이템
-        if (item?.type == Material.TOTEM_OF_UNDYING) {
-            showMineFloorSelector(player)
-            event.isCancelled = true
-            return
-        }
-        // 디버그 아이템
-        if (item?.type == Material.BUNDLE) {
-            val inventory = event.player.inventory
-            Hoe().hoes.forEach {
-                inventory.addItem(it)
-            }
-
-            val capsule = Capsule()
-            inventory.addItem(capsule.capsuleGun)
-            capsule.capsules.forEach {
-                inventory.addItem(it)
-            }
-
-            WateringCan().wateringCans.forEach {
-                inventory.addItem(it)
-            }
-
-            Pickaxe().pickaxes.forEach {
-                inventory.addItem(it)
-            }
-
-            getRegisterPlants().forEach {
-                inventory.addItem(it.getSeedItem())
-            }
-            event.isCancelled = true
-            return
-        }
-
         // 광산
         if (mines.any { it.players.contains(player) }) {
             handleMine(player, block)
@@ -225,20 +179,6 @@ class OnPlayerInteract : Listener {
     private fun handleMine(player: Player, block: Block) {
         val mine = mines.find { it.players.contains(player) } ?: return
 
-        // 디버그 아이템
-        if (player.inventory.itemInMainHand.type == Material.NETHERITE_INGOT) {
-            player.approach(mine, mine.floor + 1)
-            return
-        }
-        // 디버그 아이템
-        if (player.inventory.itemInMainHand.type == Material.NETHERITE_SWORD) {
-            mine.enemys.forEach { enemy ->
-                val uuid = UUID.fromString(enemy.enemyUUID)
-                val entity = getEntity(uuid) as? LivingEntity
-                entity?.damage(9999.9, player)
-            }
-            return
-        }
         when (block) {
             mine.exitBlockLocation?.block -> player.approach(mine, mine.floor + 1)
             mine.startBlockLocation?.block -> player.approach(mine, 0, true)

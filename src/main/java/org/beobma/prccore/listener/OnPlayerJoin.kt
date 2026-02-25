@@ -28,29 +28,5 @@ class OnPlayerJoin : Listener {
         sendLateNightReminder()
         handleEndOfDayWarnings()
         timePlay()
-        player.inventory.run {
-            Hoe().hoes.forEach {
-                addItem(it)
-            }
-
-            val capsule = Capsule()
-            addItem(capsule.capsuleGun)
-            capsule.capsules.forEach {
-                addItem(it)
-            }
-
-            WateringCan().wateringCans.forEach {
-                addItem(it)
-            }
-
-            Pickaxe().pickaxes.forEach {
-                addItem(it)
-            }
-
-            getRegisterPlants().forEach {
-                addItem(it.getSeedItem())
-            }
-        }
-        showMineFloorSelector(player)
     }
 }

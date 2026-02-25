@@ -259,7 +259,7 @@ object MineManager {
 
     /** 퇴장 */
     fun Player.leaveMine(mine: Mine) {
-        val exitLocation = DataManager.mineExitLocation ?: return
+        val exitLocation = DataManager.mineExitLocation?.clone()?.add(-0.5, 0.5, 0.5) ?: return
         mine.players.remove(this)
         resourceInteractingPlayers.entries.removeIf { it.value == uniqueId }
         mine.removeVisuals()
