@@ -183,7 +183,7 @@ object MineManager {
 
         // 미션 트리거
         Bukkit.getPluginManager().callEvent(
-            MissionEvent(this, MissionVersion.V1, "PLAYER_PROGRESS", "mine_module", 1)
+            MissionEvent(this, MissionVersion.V1, "PLAYER_PROGRESS", "mine_module", nextMine.floor)
         )
 
         // 60층까지 도달하세요
@@ -614,9 +614,9 @@ object MineManager {
         val cycleFloor = ((floor.coerceAtLeast(1) - 1) % 15) + 1
 
         val (normalModel, spaceModel) = when (cycleFloor) {
-            in 1..5   -> "rock_zombie" to "space_rock"
-            in 6..10  -> "rock_zombie_magma" to "space_magma"
-            else      -> "rock_zombie_nature" to "space_nature"
+            in 1..5   -> "rock_zombie" to "sapce_rock"
+            in 6..10  -> "rock_zombie_magma" to "sapce_magma"
+            else      -> "rock_zombie_nature" to "sapce_nature"
         }
 
         enemys
@@ -636,17 +636,6 @@ object MineManager {
                     itemInOffHandDropChance = 0f
                 }
 
-            entity.addPotionEffect(
-                PotionEffect(
-                    PotionEffectType.INVISIBILITY,
-                    PotionEffect.INFINITE_DURATION,
-                    0,
-                    false,
-                    false,
-                    false
-                )
-            )
-
             val modelId = if (Random.nextBoolean()) spaceModel else normalModel
                 applyEnemyModelWithRetry(entity, modelId)
 
@@ -654,15 +643,25 @@ object MineManager {
             enemy.enemyUUID = entity.uniqueId.toString()
         }
     }
-    private fun applyEnemyModelWithRetry(entity: Zombie, modelId: String, maxAttempts: Int = 3) {
+    private fun applyEnemyModelWithRetry(entity: Zombie, modelId: String, maxAttempts: Int = 5) {
         val attempts = AtomicInteger(0)
 
         fun apply() {
-            if (!entity.isValid || entity.isDead) return
+            if (entity.isDead) return
             val currentAttempt = attempts.incrementAndGet()
 
             val applied = runCatching {
                 CoreFrameAPI.Model.applyModel(entity, modelId, entity.location)
+                entity.addPotionEffect(
+                    PotionEffect(
+                        PotionEffectType.INVISIBILITY,
+                        PotionEffect.INFINITE_DURATION,
+                        0,
+                        false,
+                        false,
+                        false
+                    )
+                )
                 true
             }.getOrDefault(false)
 
@@ -686,29 +685,6 @@ object MineManager {
         }
 
         Bukkit.getScheduler().runTaskLater(PrcCore.instance, Runnable { apply() }, 1L)
-    }
-
-    private fun findSafeTeleport(base: Location): Location {
-        val offsets = listOf(
-            Triple(0.5, 1.0, 0.5),
-            Triple(1.5, 1.0, 0.5),
-            Triple(-0.5, 1.0, 0.5),
-            Triple(0.5, 1.0, 1.5),
-            Triple(0.5, 1.0, -0.5),
-            Triple(1.5, 1.0, 1.5),
-            Triple(-0.5, 1.0, -0.5)
-        )
-
-        offsets.forEach { (x, y, z) ->
-            val loc = base.clone().add(x, y, z)
-            val feet = loc.block
-            val head = loc.clone().add(0.0, 1.0, 0.0).block
-            if (feet.isPassable && head.isPassable) {
-                return loc
-            }
-        }
-
-        return base.clone().add(0.5, 1.0, 0.5)
     }
 
     fun markEnemyAsDead(entity: LivingEntity) {
