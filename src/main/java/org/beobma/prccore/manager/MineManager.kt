@@ -203,7 +203,6 @@ object MineManager {
         val zOffset = calculateOffset(floor)
         mineType.resourcesLocations.forEach { (x, y, z) ->
             val location = Location(world, x, y, z - zOffset)
-            if (location.block.getRelative(BlockFace.DOWN).type == Material.AIR) return@forEach
             val type = getRandomResourceTypeForFloor(floor)
             val resource = Resource(type, location)
             resources.add(resource)
@@ -373,8 +372,10 @@ object MineManager {
 
 
             val gathered = mine.resources.count { it.isGathering }
+            val mineTypes = listOf(MineType.C, MineType.H, MineType.M)
+            val per = if (mine.mineType in mineTypes ) 0.5 else 0.7
             // 출구가 등장할 비율
-            if (mine.exitBlockLocation == null && gathered >= ceil(mine.resources.size * 0.7).toInt()) {
+            if (mine.exitBlockLocation == null && gathered >= ceil(mine.resources.size * per).toInt()) {
                 if (mine.floor < MAX_MINE_FLOOR) {
                     if (resource.location.block.getRelative(BlockFace.DOWN).type != Material.AIR) {
                         resource.location.block.setExit(mine)
@@ -595,6 +596,8 @@ object MineManager {
     /** 자원 디스플레이 */
     fun Mine.addResourceDisplays() {
         resources.filter { !it.isGathering }.forEach { resource ->
+            val mineTypes = listOf(MineType.C, MineType.H, MineType.M)
+            if (mineType in mineTypes ) return@forEach
             resource.location.block.type = Material.BARRIER
             val itemDisplay = world.spawn(resource.location.clone().add(0.5, 0.5, 0.5), ItemDisplay::class.java)
             resource.uuidString = itemDisplay.uniqueId.toString()
