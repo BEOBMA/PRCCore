@@ -7,6 +7,12 @@ commands:
     description: 튜토리얼 종료 후 시간 흐름을 시작합니다.
     usage: /starttimeflow
     permission: prccore.command.starttimeflow
+  prctest:
+    description: PRC 코어 테스트/디버그 명령어
+    usage: /prctest <timeflow|nextday|clearores|killmobs|setmineprogress>
+    permission: prccore.command.prctest
 permissions:
   prccore.command.starttimeflow:
+    default: op
+  prccore.command.prctest:
     default: op

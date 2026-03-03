@@ -2,6 +2,7 @@ package org.beobma.prccore
 
 import kr.eme.prcShop.api.PRCItems
 import org.beobma.prccore.command.StartTimeFlowCommand
+import org.beobma.prccore.command.TestCommand
 import org.beobma.prccore.listener.*
 import org.beobma.prccore.manager.DataManager.gameData
 import org.beobma.prccore.manager.DataManager.loadAll
@@ -56,6 +57,7 @@ class PrcCore : JavaPlugin() {
 
     private fun registerCommands() {
         getCommand("starttimeflow")?.setExecutor(StartTimeFlowCommand())
+        getCommand("prctest")?.setExecutor(TestCommand())
     }
 
     private fun registerEvents() {

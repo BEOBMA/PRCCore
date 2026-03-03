@@ -84,6 +84,18 @@ object TimeManager {
         )
     }
 
+    fun toggleTimeFlow(): Boolean {
+        gameData.hasStartedTimeFlow = !gameData.hasStartedTimeFlow
+        if (gameData.hasStartedTimeFlow) {
+            timePlay()
+        }
+        else {
+            timePause()
+        }
+        return gameData.hasStartedTimeFlow
+    }
+
+
     /** 보스바 표시 추가 */
     fun showTimeBossBar(player: Player) {
         timeBossBar.addViewer(player)

@@ -6,6 +6,7 @@ import org.beobma.prccore.manager.AdvancementManager.grantAdvancement
 import org.beobma.prccore.manager.DataManager.mines
 import org.beobma.prccore.manager.MineManager.createMonsterDropItemForFloor
 import org.beobma.prccore.manager.MineManager.leaveMine
+import org.beobma.prccore.manager.MineManager.markEnemyAsDead
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.LivingEntity
@@ -39,9 +40,7 @@ class OnEntityDeath : Listener {
             MissionEvent(killer, MissionVersion.V2, "PLAYER_PROGRESS", "mine_module", 1)
         )
 
-        enemy.isDead = true
-        enemy.isSpawn = false
-
+        markEnemyAsDead(entity)
         val dropItem = createMonsterDropItemForFloor(mine.floor) ?: return
         event.drops.add(dropItem)
     }
@@ -62,7 +61,6 @@ class OnEntityDeath : Listener {
         val mine = mines.find { it.enemys.any { enemy -> enemy.enemyUUID == entity.uniqueId.toString() } } ?: return
         val enemy = mine.enemys.find { it.enemyUUID == entity.uniqueId.toString() } ?: return
 
-        enemy.isDead = true
-        enemy.isSpawn = false
+        markEnemyAsDead(entity)
     }
 }

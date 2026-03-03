@@ -33,6 +33,7 @@ import org.joml.AxisAngle4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.ceil
 import kotlin.random.Random
 
@@ -182,7 +183,7 @@ object MineManager {
 
         // 미션 트리거
         Bukkit.getPluginManager().callEvent(
-            MissionEvent(this, MissionVersion.V1, "PLAYER_PROGRESS", "mine_module", nextMine.floor)
+            MissionEvent(this, MissionVersion.V1, "PLAYER_PROGRESS", "mine_module", 1)
         )
 
         // 60층까지 도달하세요
@@ -266,7 +267,10 @@ object MineManager {
         mine.removeVisuals()
         mine.enemys.filter { it.isSpawn && !it.isDead && it.enemyUUID != null }.forEach {
             it.isSpawn = false
-            Bukkit.getEntity(UUID.fromString(it.enemyUUID))?.remove()
+            Bukkit.getEntity(UUID.fromString(it.enemyUUID))?.let { entity ->
+                removeAppliedModel(entity)
+                entity.remove()
+            }
         }
         teleport(exitLocation)
     }
@@ -301,6 +305,7 @@ object MineManager {
             val currentMine = mines.find { it.players.contains(this) } ?: return false
             if (currentMine != mine) return false
             if (!isOnline || isDead) return false
+            if (isSneaking) return false
             if (world != resource.location.world) return false
             return location.distanceSquared(resource.location.clone().add(0.5, 0.5, 0.5)) <= MAX_GATHERING_DISTANCE_SQUARED
         }
@@ -606,9 +611,9 @@ object MineManager {
         val cycleFloor = ((floor.coerceAtLeast(1) - 1) % 15) + 1
 
         val (normalModel, spaceModel) = when (cycleFloor) {
-            in 1..5   -> "rock_zombie" to "sapce_rock"
-            in 6..10  -> "rock_zombie_magma" to "sapce_magma"
-            else      -> "rock_zombie_nature" to "sapce_nature"
+            in 1..5   -> "rock_zombie" to "space_rock"
+            in 6..10  -> "rock_zombie_magma" to "space_magma"
+            else      -> "rock_zombie_nature" to "space_nature"
         }
 
         enemys
@@ -640,10 +645,91 @@ object MineManager {
             )
 
             val modelId = if (Random.nextBoolean()) spaceModel else normalModel
-            CoreFrameAPI.Model.applyModel(entity, modelId, entity.location)
+                applyEnemyModelWithRetry(entity, modelId)
 
             enemy.isSpawn = true
             enemy.enemyUUID = entity.uniqueId.toString()
+        }
+    }
+    private fun applyEnemyModelWithRetry(entity: Zombie, modelId: String, maxAttempts: Int = 3) {
+        val attempts = AtomicInteger(0)
+
+        fun apply() {
+            if (!entity.isValid || entity.isDead) return
+            val currentAttempt = attempts.incrementAndGet()
+
+            val applied = runCatching {
+                CoreFrameAPI.Model.applyModel(entity, modelId, entity.location)
+                true
+            }.getOrDefault(false)
+
+            if (applied) {
+                entity.addPotionEffect(
+                    PotionEffect(
+                        PotionEffectType.INVISIBILITY,
+                        PotionEffect.INFINITE_DURATION,
+                        0,
+                        false,
+                        false,
+                        false
+                    )
+                )
+                return
+            }
+
+            if (currentAttempt < maxAttempts) {
+                Bukkit.getScheduler().runTaskLater(PrcCore.instance, Runnable { apply() }, 2L)
+            }
+        }
+
+        Bukkit.getScheduler().runTaskLater(PrcCore.instance, Runnable { apply() }, 1L)
+    }
+
+    private fun findSafeTeleport(base: Location): Location {
+        val offsets = listOf(
+            Triple(0.5, 1.0, 0.5),
+            Triple(1.5, 1.0, 0.5),
+            Triple(-0.5, 1.0, 0.5),
+            Triple(0.5, 1.0, 1.5),
+            Triple(0.5, 1.0, -0.5),
+            Triple(1.5, 1.0, 1.5),
+            Triple(-0.5, 1.0, -0.5)
+        )
+
+        offsets.forEach { (x, y, z) ->
+            val loc = base.clone().add(x, y, z)
+            val feet = loc.block
+            val head = loc.clone().add(0.0, 1.0, 0.0).block
+            if (feet.isPassable && head.isPassable) {
+                return loc
+            }
+        }
+
+        return base.clone().add(0.5, 1.0, 0.5)
+    }
+
+    fun markEnemyAsDead(entity: LivingEntity) {
+        val mine = mines.find { it.enemys.any { enemy -> enemy.enemyUUID == entity.uniqueId.toString() } } ?: return
+        val enemy = mine.enemys.find { it.enemyUUID == entity.uniqueId.toString() } ?: return
+
+        enemy.isDead = true
+        enemy.isSpawn = false
+        removeAppliedModel(entity)
+    }
+
+    private fun removeAppliedModel(entity: Entity) {
+        val modelApi = CoreFrameAPI.Model
+        val methodCandidates = listOf("removeModel", "unApplyModel", "clearModel", "remove")
+
+        methodCandidates.forEach { methodName ->
+            val method = modelApi.javaClass.methods.firstOrNull {
+                it.name == methodName && it.parameterCount == 1 && it.parameterTypes[0].isAssignableFrom(entity.javaClass)
+            } ?: return@forEach
+
+            runCatching {
+                method.invoke(modelApi, entity)
+                return
+            }
         }
     }
 
@@ -750,5 +836,35 @@ object MineManager {
         itemDisplay.isInvulnerable = true
         itemDisplay.setItemStack(itemStack)
         return itemDisplay
+    }
+
+
+
+    /** 디버그: 현재 층의 모든 광물 캐짐 처리 */
+    fun clearAllResourcesOnCurrentFloor(player: Player): Int {
+        val mine = mines.find { it.players.contains(player) } ?: return 0
+        var count = 0
+        mine.resources.filter { !it.isGathering }.forEach { resource ->
+            resource.isGathering = true
+            resource.location.block.type = Material.AIR
+            resource.getItemDisplay()?.remove()
+            count++
+        }
+        return count
+    }
+
+    /** 디버그: 현재 층의 모든 몬스터 처치 */
+    fun killAllMonstersOnCurrentFloor(player: Player): Int {
+        val mine = mines.find { it.players.contains(player) } ?: return 0
+        var count = 0
+        mine.enemys.filter { !it.isDead }.forEach { enemy ->
+            enemy.isDead = true
+            enemy.isSpawn = false
+            enemy.enemyUUID?.let { uuid ->
+                Bukkit.getEntity(UUID.fromString(uuid))?.remove()
+            }
+            count++
+        }
+        return count
     }
 }

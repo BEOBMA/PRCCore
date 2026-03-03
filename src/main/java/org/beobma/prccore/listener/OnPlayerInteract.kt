@@ -143,8 +143,8 @@ class OnPlayerInteract : Listener {
         if (entity is Interaction) {
             val key = NamespacedKey("module", "mine_interaction")
             val pdc = entity.persistentDataContainer
-            DataManager.mineExitLocation = entity.location
             if (pdc.getOrDefault(key, PersistentDataType.BOOLEAN, false)) {
+                DataManager.mineExitLocation = player.location
                 showMineFloorSelector(player)
                 return
             }
