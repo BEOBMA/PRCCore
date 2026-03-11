@@ -181,6 +181,10 @@ object MineManager {
             nextMine.players.add(this)
         }
 
+        if (gameData.maxMineFloor < floor) {
+            gameData.maxMineFloor = floor
+        }
+
         // 미션 트리거
         Bukkit.getPluginManager().callEvent(
             MissionEvent(this, MissionVersion.V1, "PLAYER_PROGRESS", "mine_module", nextMine.floor)
@@ -280,6 +284,7 @@ object MineManager {
         val resourceKey = resource.getInteractionKey()
         val interactingPlayer = resourceInteractingPlayers[resourceKey]
         if (interactingPlayer != null && interactingPlayer != uniqueId) return
+        if (resource.location.block.getRelative(BlockFace.DOWN).type == Material.AIR) return
 
 
         val mainHand = inventory.itemInMainHand
@@ -596,8 +601,6 @@ object MineManager {
     /** 자원 디스플레이 */
     fun Mine.addResourceDisplays() {
         resources.filter { !it.isGathering }.forEach { resource ->
-            val mineTypes = listOf(MineType.C, MineType.H, MineType.M)
-            if (mineType in mineTypes ) return@forEach
             resource.location.block.type = Material.BARRIER
             val itemDisplay = world.spawn(resource.location.clone().add(0.5, 0.5, 0.5), ItemDisplay::class.java)
             resource.uuidString = itemDisplay.uniqueId.toString()

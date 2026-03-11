@@ -15,6 +15,7 @@ import org.beobma.prccore.manager.PlantManager.register
 import org.beobma.prccore.manager.TimeManager.showTimeBossBar
 import org.beobma.prccore.manager.TimeManager.timePause
 import org.beobma.prccore.manager.TimeManager.timePlay
+import org.beobma.prccore.manager.TimeManager.unShowTimeBossBar
 import org.beobma.prccore.plant.list.*
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -47,6 +48,7 @@ class PrcCore : JavaPlugin() {
             val mine = mines.find { it.players.contains(player) } ?: return@forEach
             mine.players.remove(player)
             player.leaveMine(mine)
+            unShowTimeBossBar(player)
         }
         playerList.clear()
         timePause()
