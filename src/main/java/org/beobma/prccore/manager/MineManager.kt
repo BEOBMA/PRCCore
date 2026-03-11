@@ -266,6 +266,7 @@ object MineManager {
     fun Player.leaveMine(mine: Mine) {
         val exitLocation = DataManager.mineExitLocation ?: return
         mine.players.remove(this)
+        if (mine.players.isNotEmpty()) return
         resourceInteractingPlayers.entries.removeIf { it.value == uniqueId }
         mine.removeVisuals()
         mine.enemys.filter { it.isSpawn && !it.isDead && it.enemyUUID != null }.forEach {
@@ -343,6 +344,15 @@ object MineManager {
         // 지연 완료 후 채집 완료 처리
         Bukkit.getScheduler().runTaskLater(PrcCore.instance, Runnable {
             soundTask.cancel()
+
+            if (cancelled) {
+                return@Runnable
+            }
+
+            if (resource.isGathering || resourceInteractingPlayers[resourceKey] != uniqueId) {
+                cancelGathering()
+                return@Runnable
+            }
 
             if (!canKeepGathering()) {
                 cancelGathering()
