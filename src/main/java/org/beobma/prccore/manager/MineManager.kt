@@ -28,6 +28,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import org.bukkit.util.Transformation
+import org.example.hoon.coreframe.CoreFrame
 import org.example.hoon.coreframe.api.CoreFrameAPI
 import org.joml.AxisAngle4f
 import org.joml.Quaternionf

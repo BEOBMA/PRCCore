@@ -159,14 +159,14 @@ object TimeManager {
     fun handleEndOfDayWarnings() {
         if ((gameData.hour == 22 && gameData.minute == 0)) {
             playerList.forEach { player ->
-                player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 0, true, true, true))
-                player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 0, true, true, true))
+                player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 0, true, true, false))
+                player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 0, true, true, false))
             }
         }
         else if ((gameData.hour == 23 && gameData.minute == 0)) {
             playerList.forEach { player ->
-                player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 1, true, true, true))
-                player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 1, true, true, true))
+                player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 1, true, true, false))
+                player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 1, true, true, false))
             }
         }
     }
