@@ -388,7 +388,7 @@ object MineManager {
 
             val gathered = mine.resources.count { it.isGathering }
             val mineTypes = listOf(MineType.C, MineType.H, MineType.M)
-            val per = if (mine.mineType in mineTypes ) 0.5 else 0.7
+            val per = if (mine.mineType in mineTypes ) 0.3 else 0.7
             // 출구가 등장할 비율
             if (mine.exitBlockLocation == null && gathered >= ceil(mine.resources.size * per).toInt()) {
                 if (mine.floor < MAX_MINE_FLOOR) {
@@ -525,11 +525,11 @@ object MineManager {
 
         val display = createItemDisplay(
             location, Material.LEATHER_HORSE_ARMOR, 6,
-            Vector3f(1.5f, 1.5f, 1.5f), 0.5, 0.9, 0.5
+            Vector3f(1.5f, 1.5f, 1.5f), 0.5, 3.0, 0.5
         )
         mine.exitBlockUUID = display.uniqueId.toString()
 
-        val marker = createExitItemDisplay(location.clone().add(0.5, 0.5, 0.5), 3)
+        val marker = createExitItemDisplay(location.clone().add(0.5, 3.0, 0.5), 3)
         mine.exitBlockMarker = marker.uniqueId.toString()
     }
 
@@ -557,12 +557,20 @@ object MineManager {
 
         startBlockLocation?.block?.type = Material.BARRIER
         if (floor != 1) {
-            startBlockUUID = createItemDisplay(
+            val rope = createItemDisplay(
                 startBlockLocation!!, Material.LEATHER_HORSE_ARMOR, 5,
-                Vector3f(3.0f, 3.0f, 3.0f), 0.25, 1.8, 0.25
-            ).uniqueId.toString()
+                Vector3f(3.0f, 3.0f, 3.0f), 0.5, 1.0, 1.5
+            )
+            rope.itemDisplayTransform = ItemDisplay.ItemDisplayTransform.HEAD
+            rope.transformation = Transformation(
+                Vector3f(0f, 4.5f, 0f),
+                Quaternionf(0f, 0f, 0f, 1f),
+                Vector3f(1.0f, 1.0f, 1.0f),
+                Quaternionf(0f, 0f, 0f, 1f)
+            )
+            startBlockUUID = rope.uniqueId.toString()
         }
-        val marker = createExitItemDisplay(startBlockLocation!!.clone().add(0.5, 0.5, 0.5), 4)
+        val marker = createExitItemDisplay(startBlockLocation!!.clone().add(0.5, 0.5, 0.5), 4) // 마커 디스플레이
         marker.billboard = Display.Billboard.VERTICAL
         startBlockMarker = marker.uniqueId.toString()
 
@@ -627,9 +635,9 @@ object MineManager {
         val cycleFloor = ((floor.coerceAtLeast(1) - 1) % 15) + 1
 
         val (normalModel, spaceModel) = when (cycleFloor) {
-            in 1..5   -> "rock_zombie" to "sapce_rock"
-            in 6..10  -> "rock_zombie_magma" to "sapce_magma"
-            else      -> "rock_zombie_nature" to "sapce_nature"
+            in 1..5   -> "rock_zombie" to "space_rock"
+            in 6..10  -> "rock_zombie_magma" to "space_magma"
+            else      -> "rock_zombie_nature" to "space_nature"
         }
 
         enemys
