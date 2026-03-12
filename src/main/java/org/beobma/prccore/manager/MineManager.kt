@@ -635,6 +635,16 @@ object MineManager {
     fun Mine.spawnEnemysMine() {
         val cycleFloor = ((floor.coerceAtLeast(1) - 1) % 15) + 1
 
+        enemys
+            .filter { !it.isSpawn && !it.isDead }
+            .map { it.location.chunk }
+            .distinctBy { "${it.x}:${it.z}" }
+            .forEach { chunk ->
+                if (!chunk.isLoaded) {
+                    chunk.load(true)
+                }
+            }
+
         val (normalModel, spaceModel) = when (cycleFloor) {
             in 1..5   -> "rock_zombie" to "space_rock"
             in 6..10  -> "rock_zombie_magma" to "space_magma"
@@ -644,19 +654,13 @@ object MineManager {
         enemys
             .filter { !it.isSpawn && !it.isDead }
             .forEach { enemy ->
-                val entity = world.spawnEntity(enemy.location.clone().add(0.5, 0.5, 0.5), EntityType.ZOMBIE) as Zombie
-
-                entity.setAdult()
-                entity.canPickupItems = false
-                entity.equipment.apply {
-                    clear()
-                    helmetDropChance = 0f
-                    chestplateDropChance = 0f
-                    leggingsDropChance = 0f
-                    bootsDropChance = 0f
-                    itemInMainHandDropChance = 0f
-                    itemInOffHandDropChance = 0f
+                val spawnLocation = enemy.location.clone().add(0.5, 0.5, 0.5)
+                if (!ensureChunkLoaded(spawnLocation)) {
+                    PrcCore.instance.loggerMessage("[Mine] Failed to load chunk for enemy spawn on floor $floor at ${spawnLocation.blockX}, ${spawnLocation.blockY}, ${spawnLocation.blockZ}")
+                    return@forEach
                 }
+
+                val entity = world.spawnEntity(spawnLocation, EntityType.ZOMBIE) as Zombie
 
             val modelId = if (Random.nextBoolean()) spaceModel else normalModel
                 applyEnemyModelWithRetry(entity, modelId)
@@ -669,8 +673,15 @@ object MineManager {
         val attempts = AtomicInteger(0)
 
         fun apply() {
-            if (entity.isDead) return
+            if (entity.isDead || !entity.isValid) return
             val currentAttempt = attempts.incrementAndGet()
+
+            if (!ensureChunkLoaded(entity.location)) {
+                if (currentAttempt < maxAttempts) {
+                    Bukkit.getScheduler().runTaskLater(PrcCore.instance, Runnable { apply() }, 2L)
+                }
+                return
+            }
 
             val applied = runCatching {
                 CoreFrameAPI.Model.applyModel(entity, modelId, entity.location)
@@ -707,6 +718,14 @@ object MineManager {
         }
 
         Bukkit.getScheduler().runTaskLater(PrcCore.instance, Runnable { apply() }, 1L)
+    }
+
+    private fun ensureChunkLoaded(location: Location): Boolean {
+        val chunk = location.chunk
+        if (!chunk.isLoaded) {
+            chunk.load(true)
+        }
+        return chunk.isLoaded
     }
 
     fun markEnemyAsDead(entity: LivingEntity) {
