@@ -112,6 +112,7 @@ object MineManager {
 
     /** 초기화 or 로드 */
     fun reset() {
+        CoreFrameAPI.Model.removeDisplay()
         resourceInteractingPlayers.clear()
         if (mines.isNotEmpty()) {
             loadData()
@@ -662,28 +663,19 @@ object MineManager {
 
                 val entity = world.spawnEntity(spawnLocation, EntityType.ZOMBIE) as Zombie
 
-            val modelId = if (Random.nextBoolean()) spaceModel else normalModel
-                applyEnemyModelWithRetry(entity, modelId)
+                val modelId = if (Random.nextBoolean()) spaceModel else normalModel
+                applyEnemyModelOnce(entity, modelId)
 
             enemy.isSpawn = true
             enemy.enemyUUID = entity.uniqueId.toString()
         }
     }
-    private fun applyEnemyModelWithRetry(entity: Zombie, modelId: String, maxAttempts: Int = 5) {
-        val attempts = AtomicInteger(0)
+    private fun applyEnemyModelOnce(entity: Zombie, modelId: String) {
+        Bukkit.getScheduler().runTaskLater(PrcCore.instance, Runnable {
+            if (entity.isDead || !entity.isValid) return@Runnable
+            if (!ensureChunkLoaded(entity.location)) return@Runnable
 
-        fun apply() {
-            if (entity.isDead || !entity.isValid) return
-            val currentAttempt = attempts.incrementAndGet()
-
-            if (!ensureChunkLoaded(entity.location)) {
-                if (currentAttempt < maxAttempts) {
-                    Bukkit.getScheduler().runTaskLater(PrcCore.instance, Runnable { apply() }, 2L)
-                }
-                return
-            }
-
-            val applied = runCatching {
+            runCatching {
                 CoreFrameAPI.Model.applyModel(entity, modelId, entity.location)
                 entity.addPotionEffect(
                     PotionEffect(
@@ -695,29 +687,8 @@ object MineManager {
                         false
                     )
                 )
-                true
-            }.getOrDefault(false)
-
-            if (applied) {
-                entity.addPotionEffect(
-                    PotionEffect(
-                        PotionEffectType.INVISIBILITY,
-                        PotionEffect.INFINITE_DURATION,
-                        0,
-                        false,
-                        false,
-                        false
-                    )
-                )
-                return
             }
-
-            if (currentAttempt < maxAttempts) {
-                Bukkit.getScheduler().runTaskLater(PrcCore.instance, Runnable { apply() }, 2L)
-            }
-        }
-
-        Bukkit.getScheduler().runTaskLater(PrcCore.instance, Runnable { apply() }, 1L)
+        }, 1L)
     }
 
     private fun ensureChunkLoaded(location: Location): Boolean {
@@ -738,18 +709,12 @@ object MineManager {
     }
 
     private fun removeAppliedModel(entity: Entity) {
-        val modelApi = CoreFrameAPI.Model
-        val methodCandidates = listOf("removeModel", "unApplyModel", "clearModel", "remove")
+        runCatching {
+            val method = CoreFrameAPI.Model.javaClass.methods.firstOrNull {
+                it.name == "removeModel" && it.parameterCount == 1 && it.parameterTypes[0].isAssignableFrom(entity.javaClass)
+            } ?: return
 
-        methodCandidates.forEach { methodName ->
-            val method = modelApi.javaClass.methods.firstOrNull {
-                it.name == methodName && it.parameterCount == 1 && it.parameterTypes[0].isAssignableFrom(entity.javaClass)
-            } ?: return@forEach
-
-            runCatching {
-                method.invoke(modelApi, entity)
-                return
-            }
+            method.invoke(CoreFrameAPI.Model, entity)
         }
     }
 
