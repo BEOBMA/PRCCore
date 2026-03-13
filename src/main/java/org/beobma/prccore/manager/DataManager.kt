@@ -37,22 +37,30 @@ object DataManager {
 
     var mineExitLocation: Location? = Location(Bukkit.getWorlds().first(), 0.0, 0.0, 0.0)
 
+    private fun debugLog(message: String) {
+        PrcCore.instance.loggerMessage("[DataDebug] $message")
+    }
+
     /** 전체 저장 */
     fun saveAll() {
+        debugLog("saveAll() started | mines=${mines.size} plants=${plantList.size} advancements=${advancementList.size} interactionFarmlands=${interactionFarmlands.size}")
         saveEncrypted("data.dat", gameData)
         saveEncrypted("mines.dat", mines)
         saveEncrypted("plants.dat", plantList)
         saveEncrypted("advancements.dat", advancementList)
         saveEncrypted("interaction_locs.dat", interactionFarmlands, LocationListSerializer)
+        debugLog("saveAll() completed")
     }
 
     /** 전체 로드 */
     fun loadAll() {
+        debugLog("loadAll() started")
         gameData = loadEncrypted("data.dat") ?: defaultGameMeta()
         mines = loadEncrypted("mines.dat") ?: mutableListOf()
         plantList = loadEncrypted("plants.dat") ?: mutableListOf()
         advancementList = loadEncrypted("advancements.dat") ?: mutableListOf()
         interactionFarmlands = (loadEncrypted("interaction_locs.dat", LocationListSerializer) ?: mutableListOf()).toMutableList()
+        debugLog("loadAll() completed | mines=${mines.size} plants=${plantList.size} advancements=${advancementList.size} interactionFarmlands=${interactionFarmlands.size}")
     }
 
     /** 저장 */
