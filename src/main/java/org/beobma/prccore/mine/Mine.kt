@@ -24,5 +24,7 @@ data class Mine(
     @Serializable(with = LocationSerializer::class)
     var exitBlockLocation: Location? = null,
     var exitBlockUUID: String? = null,
-    var exitBlockMarker: String? = null
+    var exitBlockMarker: String? = null,
+    @Transient
+    var visualsSpawned: Boolean = false
 )
