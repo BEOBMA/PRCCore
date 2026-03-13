@@ -47,6 +47,10 @@ object MineManager {
     private val world = Bukkit.getWorlds().first()
     private val miniMessage = MiniMessage.miniMessage()
 
+    private fun debugLog(message: String) {
+        PrcCore.instance.loggerMessage("[MineDebug] $message")
+    }
+
     val gatheringPlayers = mutableSetOf<UUID>()
     private val resourceInteractingPlayers = mutableMapOf<String, UUID>()
 
@@ -112,8 +116,11 @@ object MineManager {
 
     /** 초기화 or 로드 */
     fun reset() {
+        debugLog("reset() called | cachedMines=${mines.size}")
         resourceInteractingPlayers.clear()
+        debugLog("resourceInteractingPlayers cleared")
         if (mines.isNotEmpty()) {
+            debugLog("existing mine data detected, applying loadData() without regeneration")
             loadData()
             return
         }
@@ -122,7 +129,9 @@ object MineManager {
             removeItemDisplays(mine)
         }
         mines.clear()
+        debugLog("mine cache cleared, generating new mines")
         mines.addAll(generateMines())
+        debugLog("reset() completed | generatedMines=${mines.size}")
     }
 
     /** 다음날 */
@@ -147,15 +156,18 @@ object MineManager {
 
     /** 저장 데이터 적용 */
     fun loadData() {
+        debugLog("loadData() called | mines=${mines.size}")
         resourceInteractingPlayers.clear()
         mines.forEach { mine ->
             mine.startBlockLocation?.block?.type = Material.BARRIER
             mine.exitBlockLocation?.block?.type = Material.BARRIER
+            debugLog("loadData() floor=${mine.floor} | start=${mine.startBlockLocation != null} exit=${mine.exitBlockLocation != null} resources=${mine.resources.size} enemies=${mine.enemys.size}")
         }
     }
 
     /** 특정 층으로 이동 처리 */
     fun Player.approach(currentMine: Mine?, floor: Int, isExit: Boolean = false): Boolean {
+        debugLog("approach() player=$name targetFloor=$floor isExit=$isExit currentFloor=${currentMine?.floor}")
         val home = DataManager.mineExitLocation ?: return false
 
         fun teleportHome(): Boolean {
@@ -165,11 +177,13 @@ object MineManager {
 
         // 0층
         if (floor == 0) {
+            debugLog("approach() player=$name requested floor=0, moving to mine exit")
             currentMine?.let { leaveMine(it) }
             return teleportHome()
         }
 
         val nextMine = mines.firstOrNull { it.floor == floor } ?: return teleportHome()
+        debugLog("approach() player=$name resolved nextMine floor=${nextMine.floor} playersBefore=${nextMine.players.size}")
 
         if (currentMine != null && currentMine !== nextMine) {
             leaveMine(currentMine)
@@ -180,6 +194,7 @@ object MineManager {
 
         if (this !in nextMine.players) {
             nextMine.players.add(this)
+            debugLog("approach() player=$name added to floor=${nextMine.floor} playersNow=${nextMine.players.size}")
         }
 
         if (gameData.maxMineFloor < floor) {
@@ -205,18 +220,22 @@ object MineManager {
             },
             60L
         )
+        debugLog("approach() player=$name teleported to floor=${nextMine.floor} at=${target.blockX},${target.blockY},${target.blockZ}")
         return true
     }
 
     /** 자원 배치 */
     private fun Mine.addResource() {
         val zOffset = calculateOffset(floor)
+        var addedCount = 0
         mineType.resourcesLocations.forEach { (x, y, z) ->
             val location = Location(world, x, y, z - zOffset)
             val type = getRandomResourceTypeForFloor(floor)
             val resource = Resource(type, location)
             resources.add(resource)
+            addedCount++
         }
+        debugLog("addResource() floor=$floor type=${mineType.name} added=$addedCount totalResources=${resources.size}")
     }
 
     /** 층 자원 확률 */
@@ -252,11 +271,14 @@ object MineManager {
     /** 적 배치 데이터 */
     private fun Mine.addEnemyData() {
         val zOffset = calculateOffset(floor)
+        var addedCount = 0
         mineType.enemysLocations.forEach { (x, y, z) ->
             val spawnLocation = Location(world, x, y, z - zOffset)
             val enemy = Enemy(spawnLocation, getEntityTypeForFloor(floor))
             enemys.add(enemy)
+            addedCount++
         }
+        debugLog("addEnemyData() floor=$floor type=${mineType.name} added=$addedCount totalEnemies=${enemys.size}")
     }
 
     /** 층수 기반 엔티티 */
@@ -271,8 +293,12 @@ object MineManager {
     /** 퇴장 */
     fun Player.leaveMine(mine: Mine) {
         val exitLocation = DataManager.mineExitLocation ?: return
+        debugLog("leaveMine() player=$name floor=${mine.floor} playersBefore=${mine.players.size}")
         mine.players.remove(this)
-        if (mine.players.isNotEmpty()) return
+        if (mine.players.isNotEmpty()) {
+            debugLog("leaveMine() player=$name removed, visuals retained because playersRemaining=${mine.players.size}")
+            return
+        }
         resourceInteractingPlayers.entries.removeIf { it.value == uniqueId }
         mine.removeVisuals()
         mine.enemys.filter { it.isSpawn && !it.isDead && it.enemyUUID != null }.forEach {
@@ -283,6 +309,7 @@ object MineManager {
             }
         }
         teleport(exitLocation)
+        debugLog("leaveMine() player=$name teleported to mine exit at=${exitLocation.blockX},${exitLocation.blockY},${exitLocation.blockZ}")
     }
 
     /** 자원 채굴 */
@@ -624,6 +651,7 @@ object MineManager {
 
     /** 자원 디스플레이 */
     fun Mine.addResourceDisplays() {
+        var displayCount = 0
         resources.filter { !it.isGathering }.forEach { resource ->
             resource.location.block.type = Material.BARRIER
             val itemDisplay = world.spawn(resource.location.clone().add(0.5, 0.5, 0.5), ItemDisplay::class.java)
@@ -633,12 +661,16 @@ object MineManager {
                 itemMeta = itemMeta.apply { setCustomModelData(resource.resourcesType.prcItem.customModelData) }
             }
             itemDisplay.setItemStack(itemStack)
+            displayCount++
         }
+        debugLog("addResourceDisplays() floor=$floor spawnedDisplays=$displayCount")
     }
 
     /** 적 스폰 실행 */
     fun Mine.spawnEnemysMine() {
         val cycleFloor = ((floor.coerceAtLeast(1) - 1) % 15) + 1
+        val candidates = enemys.count { !it.isSpawn && !it.isDead }
+        debugLog("spawnEnemysMine() floor=$floor pendingEnemies=$candidates cycleFloor=$cycleFloor")
 
         enemys
             .filter { !it.isSpawn && !it.isDead }
@@ -672,6 +704,7 @@ object MineManager {
 
             enemy.isSpawn = true
             enemy.enemyUUID = entity.uniqueId.toString()
+            debugLog("spawnEnemysMine() floor=$floor spawnedEnemy uuid=${enemy.enemyUUID} at=${spawnLocation.blockX},${spawnLocation.blockY},${spawnLocation.blockZ} model=$modelId")
         }
     }
     private fun applyEnemyModelOnce(entity: Zombie, modelId: String) {
@@ -709,6 +742,7 @@ object MineManager {
 
         enemy.isDead = true
         enemy.isSpawn = false
+        debugLog("markEnemyAsDead() floor=${mine.floor} uuid=${entity.uniqueId}")
         removeAppliedModel(entity)
     }
 
@@ -739,7 +773,8 @@ object MineManager {
         val types = arrayOf(MineType.A, MineType.B, MineType.C, MineType.D, MineType.E, MineType.F, MineType.G, MineType.H, MineType.I, MineType.J, MineType.K,
             MineType.L, MineType.M, MineType.N, MineType.O)
 
-        return (1..MAX_MINE_FLOOR).map { floor ->
+        debugLog("generateMines() started | maxFloor=$MAX_MINE_FLOOR")
+        val generated = (1..MAX_MINE_FLOOR).map { floor ->
             val template = templates[(floor - 1) / 5 % templates.size]
             val type = types[(floor - 1) % types.size]
             val zOffset = calculateOffset(floor)
@@ -753,8 +788,11 @@ object MineManager {
                 addResource()
                 addEnemyData()
             }
+            debugLog("generateMines() floor=$floor template=${template.name} type=${type.name} start=${mine.startBlockLocation?.blockX},${mine.startBlockLocation?.blockY},${mine.startBlockLocation?.blockZ} resources=${mine.resources.size} enemies=${mine.enemys.size}")
             mine
         }
+        debugLog("generateMines() completed | generated=${generated.size}")
+        return generated
     }
 
     /** 시작 지점 디스플레이 생성 */
