@@ -33,7 +33,9 @@ class PrcCore : JavaPlugin() {
         registerCommands()
         registerPlants()
         loadAll()
+        loggerMessage("로딩 완료")
         MineManager.reset()
+        loggerMessage("초기화 완료")
         playerList.addAll(Bukkit.getOnlinePlayers())
         playerList.forEach { showTimeBossBar(it) }
 
@@ -53,6 +55,9 @@ class PrcCore : JavaPlugin() {
         playerList.clear()
         timePause()
         saveAll()
+        loggerMessage("저장 완료")
+        MineManager.reset()
+        loggerMessage("초기화 완료")
 
         loggerMessage("PrcCore Plugin Disable")
     }

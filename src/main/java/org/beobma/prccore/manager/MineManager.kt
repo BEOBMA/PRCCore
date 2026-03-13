@@ -112,7 +112,6 @@ object MineManager {
 
     /** 초기화 or 로드 */
     fun reset() {
-        CoreFrameAPI.Model.removeDisplay()
         resourceInteractingPlayers.clear()
         if (mines.isNotEmpty()) {
             loadData()
@@ -198,9 +197,14 @@ object MineManager {
         }
 
 
-
         this.teleport(target)
-        nextMine.spawnVisuals()
+        Bukkit.getScheduler().runTaskLater(
+            PrcCore.instance,
+            Runnable {
+                nextMine.spawnVisuals()
+            },
+            60L
+        )
         return true
     }
 
