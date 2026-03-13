@@ -586,6 +586,7 @@ object MineManager {
     /** 시각 요소 생성 */
     fun Mine.spawnVisuals() {
         val start = System.currentTimeMillis()
+        PrcCore.instance.loggerMessage("[Mine] ㅓㄹㄷ재ㅑ럳재ㅑ럳잴")
         if (players.size > 1) return
 
         startBlockLocation?.block?.type = Material.BARRIER
