@@ -128,6 +128,7 @@ object MineManager {
             mine.resources.forEach { resource -> resource.getItemDisplay()?.remove() }
             removeItemDisplays(mine)
         }
+        mines.forEach { it.visualsSpawned = false }
         mines.clear()
         debugLog("mine cache cleared, generating new mines")
         mines.addAll(generateMines())
@@ -147,6 +148,7 @@ object MineManager {
         }
         val newMines = generateMines()
 
+        mines.forEach { it.visualsSpawned = false }
         mines.clear()
         mines.addAll(newMines)
 
@@ -587,7 +589,7 @@ object MineManager {
     fun Mine.spawnVisuals() {
         val start = System.currentTimeMillis()
         PrcCore.instance.loggerMessage("[Mine] ㅓㄹㄷ재ㅑ럳재ㅑ럳잴")
-        if (players.size > 1) return
+        if (visualsSpawned) return
 
         startBlockLocation?.block?.type = Material.BARRIER
         if (floor != 1) {
@@ -625,6 +627,8 @@ object MineManager {
         addResourceDisplays()
         spawnEnemysMine()
 
+        visualsSpawned = true
+
         val elapsed = System.currentTimeMillis() - start
         PrcCore.instance.loggerMessage("[Mine] spawnVisuals() for floor $floor took ${elapsed}ms")
     }
@@ -645,6 +649,8 @@ object MineManager {
             it.location.block.type = Material.AIR
             it.getItemDisplay()?.remove()
         }
+
+        visualsSpawned = false
 
         val elapsed = System.currentTimeMillis() - start
         PrcCore.instance.loggerMessage("[Mine] removeVisuals() for floor $floor took ${elapsed}ms")
@@ -763,6 +769,7 @@ object MineManager {
         mine.exitBlockLocation?.block?.type = Material.AIR
         listOf(mine.startBlockUUID, mine.exitBlockUUID, mine.startBlockMarker, mine.exitBlockMarker)
             .forEach { it?.let { uuid -> getItemDisplayToUUID(uuid)?.remove() } }
+        mine.visualsSpawned = false
     }
 
     /** 층수 오프셋 계산 */
