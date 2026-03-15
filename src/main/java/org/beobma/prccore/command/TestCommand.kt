@@ -7,6 +7,8 @@ import org.beobma.prccore.manager.MineManager.clearAllResourcesOnCurrentFloor
 import org.beobma.prccore.manager.MineManager.killAllMonstersOnCurrentFloor
 import org.beobma.prccore.manager.TimeManager.endOfDay
 import org.beobma.prccore.manager.TimeManager.toggleTimeFlow
+import org.beobma.prccore.resource.Resource
+import org.beobma.prccore.tool.Pickaxe
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
@@ -65,6 +67,13 @@ class TestCommand: CommandExecutor {
                 }
 
                 sender.sendMessage("[PrcCore] ${floor}층으로 이동했습니다.")
+            }
+            "item" -> {
+                val player = sender as? Player ?: run {
+                    sender.sendMessage("[PrcCore] 플레이어만 사용할 수 있습니다.")
+                    return true
+                }
+                player.inventory.addItem(Pickaxe().heavyDrill)
             }
             else -> sender.sendMessage(mm.deserialize("<red>알 수 없는 서브 명령어입니다.</red>"))
         }

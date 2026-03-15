@@ -560,11 +560,11 @@ object MineManager {
 
         val display = createItemDisplay(
             location, Material.LEATHER_HORSE_ARMOR, 6,
-            Vector3f(1.5f, 1.5f, 1.5f), 0.5, 3.0, 0.5
+            Vector3f(1.5f, 1.5f, 1.5f), 0.5, 0.9, 0.5
         )
         mine.exitBlockUUID = display.uniqueId.toString()
 
-        val marker = createExitItemDisplay(location.clone().add(0.5, 3.0, 0.5), 3)
+        val marker = createExitItemDisplay(location.clone().add(0.5, 1.0, 0.5), 3)
         mine.exitBlockMarker = marker.uniqueId.toString()
     }
 
@@ -588,7 +588,6 @@ object MineManager {
     /** 시각 요소 생성 */
     fun Mine.spawnVisuals() {
         val start = System.currentTimeMillis()
-        PrcCore.instance.loggerMessage("[Mine] ㅓㄹㄷ재ㅑ럳재ㅑ럳잴")
         if (visualsSpawned) return
 
         startBlockLocation?.block?.type = Material.BARRIER
