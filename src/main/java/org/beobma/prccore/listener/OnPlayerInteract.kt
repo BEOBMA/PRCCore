@@ -201,14 +201,17 @@ class OnPlayerInteract : Listener {
         val mainCmd = main?.getCustomModelData()
         val offCmd = off.getCustomModelData()
 
-        // 빈손/무관 도구 상호작용
-        if (mainCmd == null || main.isFoodLikeItem()) {
-            when {
-                status.isHarvestComplete -> player.harvesting(plant)
-                status.isDeadGrass       -> player.removePlant(plant)
-            }
+        if (status.isHarvestComplete) {
+            player.harvesting(plant)
             return
         }
+
+        if (status.isDeadGrass) {
+            player.removePlant(plant)
+            return
+        }
+        if (mainCmd == null) return
+
 
         // 캡슐 상호작용
         if (off.hasCustomModelData(CAPSULE_MODEL_DATAS, Material.ORANGE_DYE)) {

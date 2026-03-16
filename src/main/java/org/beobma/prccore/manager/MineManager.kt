@@ -28,13 +28,11 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import org.bukkit.util.Transformation
-import org.example.hoon.coreframe.CoreFrame
 import org.example.hoon.coreframe.api.CoreFrameAPI
 import org.joml.AxisAngle4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.*
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.ceil
 import kotlin.random.Random
 
@@ -218,6 +216,7 @@ object MineManager {
         Bukkit.getScheduler().runTaskLater(
             PrcCore.instance,
             Runnable {
+                if (nextMine.players.isEmpty()) return@Runnable
                 nextMine.spawnVisuals()
             },
             60L
@@ -297,6 +296,8 @@ object MineManager {
         val exitLocation = DataManager.mineExitLocation ?: return
         debugLog("leaveMine() player=$name floor=${mine.floor} playersBefore=${mine.players.size}")
         mine.players.remove(this)
+        teleport(exitLocation)
+        debugLog("leaveMine() player=$name teleported to mine exit at=${exitLocation.blockX},${exitLocation.blockY},${exitLocation.blockZ}")
         if (mine.players.isNotEmpty()) {
             debugLog("leaveMine() player=$name removed, visuals retained because playersRemaining=${mine.players.size}")
             return
@@ -310,8 +311,6 @@ object MineManager {
                 entity.remove()
             }
         }
-        teleport(exitLocation)
-        debugLog("leaveMine() player=$name teleported to mine exit at=${exitLocation.blockX},${exitLocation.blockY},${exitLocation.blockZ}")
     }
 
     /** 자원 채굴 */
@@ -422,8 +421,7 @@ object MineManager {
 
 
             val gathered = mine.resources.count { it.isGathering }
-            val mineTypes = listOf(MineType.C, MineType.H, MineType.M)
-            val per = if (mine.mineType in mineTypes ) 0.3 else 0.7
+            val per = 0.4
             // 출구가 등장할 비율
             if (mine.exitBlockLocation == null && gathered >= ceil(mine.resources.size * per).toInt()) {
                 if (mine.floor < MAX_MINE_FLOOR) {
@@ -557,6 +555,10 @@ object MineManager {
     private fun Block.setExit(mine: Mine) {
         type = Material.BARRIER
         mine.exitBlockLocation = location
+
+        mine.players.forEach { player ->
+            player.sendMessage(miniMessage.deserialize("출구가 등장했습니다."))
+        }
 
         val display = createItemDisplay(
             location, Material.LEATHER_HORSE_ARMOR, 6,

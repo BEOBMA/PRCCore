@@ -1,5 +1,10 @@
 package org.beobma.prccore.manager
 
+import io.papermc.paper.datacomponent.DataComponentTypes
+import io.papermc.paper.datacomponent.item.Consumable
+import io.papermc.paper.datacomponent.item.FoodProperties
+import io.papermc.paper.datacomponent.item.consumable.ConsumeEffect
+import io.papermc.paper.datacomponent.item.consumable.ItemUseAnimation
 import kr.eme.prcMission.api.events.MissionEvent
 import kr.eme.prcMission.enums.MissionVersion
 import org.beobma.prccore.manager.AdvancementManager.addAdvancementInt
@@ -33,6 +38,7 @@ import org.beobma.prccore.manager.ToolManager.WATERINGCAN_CUSTOM_MODEL_DATA
 import org.beobma.prccore.manager.ToolManager.WATERINGCAN_CUSTOM_MODEL_DATAS
 import org.beobma.prccore.manager.ToolManager.WEED_KILLER_CAPSULE_MODEL_DATA
 import org.beobma.prccore.manager.ToolManager.decreaseCustomDurability
+import org.beobma.prccore.plant.EatablePlants
 import org.beobma.prccore.plant.Plant
 import org.beobma.prccore.plant.list.WeedPlant
 import org.beobma.prccore.tool.CapsuleType
@@ -167,6 +173,7 @@ object FarmingManager {
     /** 흙 → 경작지 변환 + 상호작용 등록 */
     private fun Player.convertToFarmland(block: Block) {
         block.type = Material.FARMLAND
+        world.playSound(block.location, Sound.ITEM_HOE_TILL, 1.0f, 1.0f)
         interactionFarmlands.add(block.location)
         fireMission(MissionVersion.V2, "PLAYER_PROGRESS", "farming_module", 1)
     }
@@ -307,7 +314,26 @@ object FarmingManager {
                     registered?.let { plantPRCG1ItemMap[it] }
                 }
             } ?: return
+
             val item = prcItem.create()
+            val finalCmd = rollQualityCmd(baseCmd, iridiumChance, goldChance, plant)
+            item.itemMeta = item.itemMeta.apply { setCustomModelData(finalCmd) }
+            val eatablePlants = registered as? EatablePlants ?: return
+            val quality = plant.quality ?: EatablePlants.QUALITY_SILVER
+
+            val food = FoodProperties.food()
+                .nutrition(eatablePlants.getNutrition(quality))
+                .saturation(eatablePlants.getSaturation(quality))
+                .build()
+            val effects = eatablePlants.getEffects(quality)
+            val consumable = Consumable.consumable()
+                .consumeSeconds(eatablePlants.getConsumeSeconds(quality))
+                .animation(ItemUseAnimation.EAT)
+                .addEffect(ConsumeEffect.applyStatusEffects(effects, 1.0f))
+                .build()
+
+            item.setData(DataComponentTypes.FOOD, food)
+            item.setData(DataComponentTypes.CONSUMABLE, consumable)
 
             val farmlandLocation = plant.farmlandLocation ?: return
             val dropLoc = farmlandLocation.clone().add(0.5, 0.5, 0.5)
