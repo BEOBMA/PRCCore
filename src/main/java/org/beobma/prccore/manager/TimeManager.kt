@@ -44,7 +44,7 @@ object TimeManager {
                 handleEndOfDayWarnings()
 
                 if (gameData.hour == 23 && gameData.minute == 50) {
-                    gameData.hour = 0
+                    gameData.hour = 6
                     endOfDay()
                 }
             }
@@ -109,7 +109,7 @@ object TimeManager {
     /** 하루 종료 처리: 날짜 증가, 시간 초기화, 타이머 일시정지, 작물 성장 처리, 경작지 수분 초기화, 광산 갱신, 타이머 재개 */
     fun endOfDay() {
         gameData.day++
-        gameData.hour = 0
+        gameData.hour = 6
         timePause()
 
         plantList.forEach { it.growth() }
@@ -159,14 +159,14 @@ object TimeManager {
     fun handleEndOfDayWarnings() {
         if ((gameData.hour == 22 && gameData.minute == 0)) {
             playerList.forEach { player ->
-                player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 0, true, true, false))
-                player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 0, true, true, false))
+                player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, 10, 0, true, true, false))
+                player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, 5, 0, true, true, false))
             }
         }
         else if ((gameData.hour == 23 && gameData.minute == 0)) {
             playerList.forEach { player ->
-                player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 1, true, true, false))
-                player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 1, true, true, false))
+                player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, 15, 1, true, true, false))
+                player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, 7, 1, true, true, false))
             }
         }
     }

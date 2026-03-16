@@ -201,12 +201,12 @@ object MineManager {
 
         if (gameData.maxMineFloor < floor) {
             gameData.maxMineFloor = floor
-        }
 
-        // 미션 트리거
-        Bukkit.getPluginManager().callEvent(
-            MissionEvent(this, MissionVersion.V1, "PLAYER_PROGRESS", "mine_module", nextMine.floor)
-        )
+            // 미션 트리거
+            Bukkit.getPluginManager().callEvent(
+                MissionEvent(this, MissionVersion.V1, "PLAYER_PROGRESS", "mine_module", nextMine.floor)
+            )
+        }
 
         // 60층까지 도달하세요
         if (nextMine.floor >= 60) {
@@ -704,6 +704,17 @@ object MineManager {
                 }
 
                 val entity = world.spawnEntity(spawnLocation, EntityType.ZOMBIE) as Zombie
+                entity.setAdult()
+                entity.canPickupItems = false
+                entity.equipment.apply {
+                    clear()
+                    helmetDropChance = 0f
+                    chestplateDropChance = 0f
+                    leggingsDropChance = 0f
+                    bootsDropChance = 0f
+                    itemInMainHandDropChance = 0f
+                    itemInOffHandDropChance = 0f
+                }
 
                 val modelId = if (Random.nextBoolean()) spaceModel else normalModel
                 applyEnemyModelOnce(entity, modelId)
