@@ -1,5 +1,6 @@
 package org.beobma.prccore.manager
 
+import io.papermc.paper.command.brigadier.argument.ArgumentTypes.world
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.text.format.ShadowColor
 import net.kyori.adventure.text.minimessage.MiniMessage
@@ -14,6 +15,8 @@ import org.beobma.prccore.manager.MineManager.nextDay
 import org.beobma.prccore.plant.Plant
 import org.beobma.prccore.plant.list.DeadGrassPlant
 import org.beobma.prccore.util.Season
+import org.bukkit.Bukkit
+import org.bukkit.GameMode
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.data.type.Farmland
@@ -22,6 +25,7 @@ import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import org.bukkit.scheduler.BukkitRunnable
 import org.bukkit.scheduler.BukkitTask
+import studio.semicolon.prc.api.module.ModuleAPI
 
 object TimeManager {
     private var timeTask: BukkitTask? = null
@@ -136,8 +140,15 @@ object TimeManager {
         // 모든 플레이어 홈 모듈 이동
         nextDay()
         timePlay()
+        val exitLocation = Location(Bukkit.getWorlds().first(), 179.5, -34.0, 163.5)
 
         playerList.forEach { player ->
+            if (!ModuleAPI.isInsideModule(player)) {
+                if (player.gameMode != GameMode.CREATIVE) {
+                    player.teleport(exitLocation)
+                }
+            }
+
             player.removePotionEffect(PotionEffectType.SLOWNESS)
             player.removePotionEffect(PotionEffectType.BLINDNESS)
         }

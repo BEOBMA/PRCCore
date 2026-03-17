@@ -5,10 +5,14 @@ import org.beobma.prccore.manager.DataManager.saveAll
 import org.beobma.prccore.manager.MineManager.approach
 import org.beobma.prccore.manager.MineManager.clearAllResourcesOnCurrentFloor
 import org.beobma.prccore.manager.MineManager.killAllMonstersOnCurrentFloor
+import org.beobma.prccore.manager.PlantManager.getSeedItem
 import org.beobma.prccore.manager.TimeManager.endOfDay
 import org.beobma.prccore.manager.TimeManager.toggleTimeFlow
+import org.beobma.prccore.plant.list.PotatoPlant
 import org.beobma.prccore.resource.Resource
+import org.beobma.prccore.tool.Hoe
 import org.beobma.prccore.tool.Pickaxe
+import org.beobma.prccore.tool.WateringCan
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
@@ -74,6 +78,9 @@ class TestCommand: CommandExecutor {
                     return true
                 }
                 player.inventory.addItem(Pickaxe().heavyDrill)
+                player.inventory.addItem(Hoe().autoHoe)
+                player.inventory.addItem(WateringCan().pumpWateringCan)
+                player.inventory.addItem(PotatoPlant().getSeedItem())
             }
             else -> sender.sendMessage(mm.deserialize("<red>알 수 없는 서브 명령어입니다.</red>"))
         }
