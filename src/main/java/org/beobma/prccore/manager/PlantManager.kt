@@ -57,6 +57,7 @@ object PlantManager {
     /** 등록된 식물 원형 조회 (클래스 기준) */
     fun getRegisteredPlant(plant: Plant): Plant? {
         return plantFactories.keys.find { it::class.java == plant::class.java }
+            ?: plantFactories.keys.find { it.name == plant.name }
     }
 
     /** 등록 식물 목록 */
