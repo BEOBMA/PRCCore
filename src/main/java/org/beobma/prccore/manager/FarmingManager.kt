@@ -7,6 +7,7 @@ import io.papermc.paper.datacomponent.item.consumable.ConsumeEffect
 import io.papermc.paper.datacomponent.item.consumable.ItemUseAnimation
 import kr.eme.prcMission.api.events.MissionEvent
 import kr.eme.prcMission.enums.MissionVersion
+import org.beobma.prccore.PrcCore
 import org.beobma.prccore.manager.AdvancementManager.addAdvancementInt
 import org.beobma.prccore.manager.CustomModelDataManager.getCustomModelData
 import org.beobma.prccore.manager.CustomModelDataManager.hasCustomModelData
@@ -316,8 +317,6 @@ object FarmingManager {
             } ?: return
 
             val item = prcItem.create()
-            val finalCmd = rollQualityCmd(baseCmd, iridiumChance, goldChance, plant)
-            item.itemMeta = item.itemMeta.apply { setCustomModelData(finalCmd) }
             val eatablePlants = registered as? EatablePlants ?: return
             val quality = plant.quality ?: EatablePlants.QUALITY_SILVER
 
@@ -395,23 +394,38 @@ object FarmingManager {
 
     /** 성장 */
     fun Plant.growth() {
+        fun loggerMessage(string: String) = PrcCore.instance.loggerMessage(string)
+
         val status = plantStatus
+        loggerMessage(
+            "[PlantGrowth] start " +
+                    "farmland=${farmlandLocation?.world?.name}@${farmlandLocation?.blockX},${farmlandLocation?.blockY},${farmlandLocation?.blockZ} " +
+                    "isPlant=${status.isPlant} " +
+                    "harvestComplete=${status.isHarvestComplete} " +
+                    "weeds=${status.weedsCount} " +
+                    "remaining=$remainingGrowthDays/$growthDays " +
+                    "capsule=${status.capsuleType}"
+        )
 
         if (!status.isPlant) {
+            loggerMessage("[PlantGrowth] abort: not a plant")
             return
         }
 
         val fLoc = farmlandLocation ?: run {
+            loggerMessage("[PlantGrowth] abort: farmlandLocation is null")
             return
         }
 
         val farmland = (fLoc.block.blockData as? Farmland) ?: run {
+            loggerMessage("[PlantGrowth] abort: block at farmlandLocation is not Farmland, type=${fLoc.block.type}")
             return
         }
 
         // 계절 시스템(보류)
 
         if (status.isHarvestComplete) {
+            loggerMessage("[PlantGrowth] abort: already harvest complete")
             return
         }
 
@@ -420,28 +434,58 @@ object FarmingManager {
         val baseY = fLoc.blockY
         val baseZ = fLoc.blockZ
 
+        loggerMessage(
+            "[PlantGrowth] base farmland=" +
+                    "${world.name}@${baseX},${baseY},${baseZ} moisture=${farmland.moisture}"
+        )
+
         fun advance(accelerated: Boolean) {
             val watering = isWatering()
+            loggerMessage(
+                "[PlantGrowth] advance called " +
+                        "accelerated=$accelerated " +
+                        "watering=$watering " +
+                        "remainingBefore=$remainingGrowthDays/$growthDays"
+            )
 
             if (!watering) {
+                loggerMessage("[PlantGrowth] advance abort: not watered")
                 return
             }
 
+            val beforeRemaining = remainingGrowthDays
             val done = if (accelerated) {
                 --remainingGrowthDays <= 1
             } else {
                 --remainingGrowthDays <= 0
             }
 
+            loggerMessage(
+                "[PlantGrowth] growth progressed " +
+                        "remainingBefore=$beforeRemaining " +
+                        "remainingAfter=$remainingGrowthDays " +
+                        "done=$done"
+            )
+
             if (done) {
                 status.isHarvestComplete = true
+                loggerMessage("[PlantGrowth] harvest complete set to true")
             }
 
             val progress = (growthDays - remainingGrowthDays).toDouble() / growthDays
             val registered = getRegisteredPlant(this)
+
+            loggerMessage(
+                "[PlantGrowth] updating display stage " +
+                        "registered=${registered?.toString()} " +
+                        "harvestComplete=${status.isHarvestComplete} " +
+                        "progress=$progress"
+            )
+
             updateDisplayStage(this, registered, status.isHarvestComplete, progress)
 
             status.weedsCount = 0
+            loggerMessage("[PlantGrowth] weedsCount reset to 0")
         }
 
         var weedFound = false
@@ -454,13 +498,29 @@ object FarmingManager {
                 checked++
 
                 val cur = world.getBlockAt(x, baseY, z)
+                loggerMessage(
+                    "[PlantGrowth] checking farmland around " +
+                            "${world.name}@$x,$baseY,$z type=${cur.type}"
+                )
+
                 if (cur.type != Material.FARMLAND) continue
 
-                val adj = plantList.find { it.farmlandLocation == cur.location } ?: continue
+                val adj = plantList.find { it.farmlandLocation == cur.location }
+                if (adj == null) {
+                    loggerMessage("[PlantGrowth] no plant registered at ${world.name}@$x,$baseY,$z")
+                    continue
+                }
+
                 foundPlants++
+                loggerMessage(
+                    "[PlantGrowth] adjacent plant found " +
+                            "loc=${world.name}@$x,$baseY,$z " +
+                            "isWeeds=${adj.plantStatus.isWeeds}"
+                )
 
                 if (adj.plantStatus.isWeeds) {
                     weedFound = true
+                    loggerMessage("[PlantGrowth] weed detected, breaking search")
                     break@loop
                 } else {
                     nonWeedFound = true
@@ -468,18 +528,33 @@ object FarmingManager {
             }
         }
 
+        loggerMessage(
+            "[PlantGrowth] around scan result " +
+                    "checked=$checked " +
+                    "foundPlants=$foundPlants " +
+                    "weedFound=$weedFound " +
+                    "nonWeedFound=$nonWeedFound"
+        )
+
         when {
             weedFound -> {
                 status.weedsCount++
+                loggerMessage("[PlantGrowth] weed found, weedsCount increased to ${status.weedsCount}")
 
                 if (status.weedsCount > 2) {
+                    loggerMessage("[PlantGrowth] weedsCount > 2, calling wither()")
                     wither()
                 }
             }
 
             nonWeedFound -> {
                 val accelerated = (status.capsuleType == CapsuleType.Growth)
+                loggerMessage("[PlantGrowth] non-weed adjacent plant found, advance(accelerated=$accelerated)")
                 advance(accelerated = accelerated)
+            }
+
+            else -> {
+                loggerMessage("[PlantGrowth] no adjacent farmland plant affected growth")
             }
         }
 
@@ -487,5 +562,18 @@ object FarmingManager {
         val beforeMoisture = farmland.moisture
         farmland.moisture = 0
         fLoc.block.blockData = farmland
+
+        loggerMessage(
+            "[PlantGrowth] moisture consumed " +
+                    "before=$beforeMoisture after=${farmland.moisture} " +
+                    "at ${world.name}@${baseX},${baseY},${baseZ}"
+        )
+
+        loggerMessage(
+            "[PlantGrowth] end " +
+                    "harvestComplete=${status.isHarvestComplete} " +
+                    "weeds=${status.weedsCount} " +
+                    "remaining=$remainingGrowthDays/$growthDays"
+        )
     }
 }
