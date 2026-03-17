@@ -106,8 +106,10 @@ object FarmingManager {
         if (farmland.moisture < farmland.maximumMoisture) {
             farmland.moisture = farmland.maximumMoisture
             farmlandBlock.blockData = farmland
-            interactionFarmlands.add(farmlandBlock.location)
         }
+
+        interactionFarmlands.add(farmlandBlock.location)
+        plantList.find { it.farmlandLocation == farmlandBlock.location }?.plantStatus?.wateredToday = true
     }
 
     /** 아이템 디스플레이 갱신 */
@@ -389,7 +391,7 @@ object FarmingManager {
     /** 물 주기 여부 */
     fun Plant.isWatering(): Boolean {
         val f = farmlandLocation?.block?.blockData as? Farmland ?: return false
-        return f.moisture == f.maximumMoisture
+        return plantStatus.wateredToday || f.moisture == f.maximumMoisture
     }
 
     /** 성장 */
@@ -436,7 +438,7 @@ object FarmingManager {
 
         loggerMessage(
             "[PlantGrowth] base farmland=" +
-                    "${world.name}@${baseX},${baseY},${baseZ} moisture=${farmland.moisture}"
+                    "${world.name}@${baseX},${baseY},${baseZ} moisture=${farmland.moisture} wateredToday=${status.wateredToday}"
         )
 
         fun advance(accelerated: Boolean) {
@@ -560,12 +562,15 @@ object FarmingManager {
 
         // 수분 소모
         val beforeMoisture = farmland.moisture
+        val beforeWateredToday = status.wateredToday
         farmland.moisture = 0
         fLoc.block.blockData = farmland
+        status.wateredToday = false
 
         loggerMessage(
             "[PlantGrowth] moisture consumed " +
                     "before=$beforeMoisture after=${farmland.moisture} " +
+                    "wateredTodayBefore=$beforeWateredToday wateredTodayAfter=${status.wateredToday} " +
                     "at ${world.name}@${baseX},${baseY},${baseZ}"
         )
 
