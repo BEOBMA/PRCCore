@@ -691,9 +691,9 @@ object MineManager {
             }
 
         val (normalModel, spaceModel) = when (cycleFloor) {
-            in 1..5   -> "rock_zombie" to "space_rock"
-            in 6..10  -> "rock_zombie_magma" to "space_magma"
-            else      -> "rock_zombie_nature" to "space_nature"
+            in 1..5   -> "rock_zombie_magma" to "space_magma"
+            in 6..10  -> "rock_zombie_nature" to "space_nature"
+            else      -> "rock_zombie" to "space_rock"
         }
 
         enemys
