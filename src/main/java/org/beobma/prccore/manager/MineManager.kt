@@ -543,12 +543,8 @@ object MineManager {
         val item = ItemStack(Material.IRON_HORSE_ARMOR).also { stack ->
             stack.itemMeta = stack.itemMeta?.apply {
                 isHideTooltip = true
-
-                // ── 표시 이름/로어 완전 제거 ──
-                displayName(null)  // 빈 문자열 대신 null 로 제거
+                displayName(null)
                 lore(null)
-
-                // ── 필요 설정 ──
                 setCustomModelData(10)
             }
         }
