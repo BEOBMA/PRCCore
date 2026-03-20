@@ -573,6 +573,7 @@ object MineManager {
         mine.exitBlockUUID = display.uniqueId.toString()
 
         val marker = createExitItemDisplay(location.clone().add(0.5, 1.0, 0.5), 3)
+        marker.isGlowing = true
         mine.exitBlockMarker = marker.uniqueId.toString()
     }
 
