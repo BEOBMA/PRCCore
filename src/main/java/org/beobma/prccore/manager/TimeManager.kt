@@ -170,14 +170,18 @@ object TimeManager {
     fun handleEndOfDayWarnings() {
         if ((gameData.hour == 22 && gameData.minute == 0)) {
             playerList.forEach { player ->
-                player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, 200, 0, true, true, false))
-                player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, 100, 0, true, true, false))
+                if (!ModuleAPI.isInsideModule(player)) {
+                    player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, 200, 0, true, true, false))
+                    player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, 100, 0, true, true, false))
+                }
             }
         }
         else if ((gameData.hour == 23 && gameData.minute == 0)) {
             playerList.forEach { player ->
-                player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, 300, 1, true, true, false))
-                player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, 140, 1, true, true, false))
+                if (!ModuleAPI.isInsideModule(player)) {
+                    player.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, 300, 1, true, true, false))
+                    player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, 140, 1, true, true, false))
+                }
             }
         }
     }

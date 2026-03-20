@@ -481,7 +481,9 @@ object MineManager {
                 else -> return null
             }
         }
-        return (sec * 20).toLong()
+
+        val fasterSec = sec * 0.8
+        return (fasterSec * 20).toLong()
     }
 
     /** 단단한 곡괭이 판정 */
