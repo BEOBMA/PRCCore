@@ -211,6 +211,8 @@ object MineManager {
             grantAdvancement(this, "module/normal/diglett")
         }
 
+        level = nextMine.floor
+        exp = 0f
 
         this.teleport(target)
         Bukkit.getScheduler().runTaskLater(
@@ -296,6 +298,8 @@ object MineManager {
         val exitLocation = DataManager.mineExitLocation ?: return
         debugLog("leaveMine() player=$name floor=${mine.floor} playersBefore=${mine.players.size}")
         mine.players.remove(this)
+        level = 0
+        exp = 0f
         teleport(exitLocation)
         debugLog("leaveMine() player=$name teleported to mine exit at=${exitLocation.blockX},${exitLocation.blockY},${exitLocation.blockZ}")
         if (mine.players.isNotEmpty()) {
