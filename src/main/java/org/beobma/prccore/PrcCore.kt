@@ -78,6 +78,7 @@ class PrcCore : JavaPlugin() {
         server.pluginManager.registerEvents(OnPlayerMove(), this)
         server.pluginManager.registerEvents(OnPlayerItemHeld(), this)
         server.pluginManager.registerEvents(OnConsume(), this)
+        server.pluginManager.registerEvents(OnPlayerExperience(), this)
     }
 
     private fun registerPlants() {
