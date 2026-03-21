@@ -457,37 +457,42 @@ object MineManager {
     fun getGatheringDelay(pickaxe: ItemStack, type: ResourceType): Long? {
         val sec = when (type) {
             Magnesium, Aluminum -> when {
-                isHardPickaxe(pickaxe) -> 4.0
-                isLightDrill(pickaxe) -> 4.0
-                isHeavyDrill(pickaxe) -> 2.5
+                isHardPickaxe(pickaxe) -> 4.5
+                isLightDrill(pickaxe) -> 2.5
+                isHeavyDrill(pickaxe) -> 0.3
                 else -> return null
             }
-            Iron, Copper, Lithium -> when {
+            Iron -> when {
+                isHardPickaxe(pickaxe) -> 5.0
+                isLightDrill(pickaxe) -> 3.0
+                isHeavyDrill(pickaxe) -> 0.7
+                else -> return null
+            }
+            Copper -> when {
                 isHardPickaxe(pickaxe) -> 6.0
-                isLightDrill(pickaxe) -> 6.0
-                isHeavyDrill(pickaxe) -> 4.0
+                isLightDrill(pickaxe) -> 4.0
+                isHeavyDrill(pickaxe) -> 0.7
+                else -> return null
+            }
+            Lithium -> when {
+                isHardPickaxe(pickaxe) -> 7.0
+                isLightDrill(pickaxe) -> 5.0
+                isHeavyDrill(pickaxe) -> 1.0
                 else -> return null
             }
             Gold -> when {
-                isHardPickaxe(pickaxe) -> 8.0
-                isLightDrill(pickaxe) -> 8.0
-                isHeavyDrill(pickaxe) -> 6.0
+                isLightDrill(pickaxe) -> 5.5
+                isHeavyDrill(pickaxe) -> 1.0
                 else -> return null
             }
-            Platinum -> when {
-                isLightDrill(pickaxe) -> 8.0
-                isHeavyDrill(pickaxe) -> 6.0
-                else -> return null
-            }
-            Nickel, Titanium -> when {
-                isLightDrill(pickaxe) -> 10.0
-                isHeavyDrill(pickaxe) -> 6.0
+            Platinum, Nickel, Titanium -> when {
+                isLightDrill(pickaxe) -> 7.0
+                isHeavyDrill(pickaxe) -> 2.0
                 else -> return null
             }
         }
 
-        val fasterSec = sec * 0.8
-        return (fasterSec * 20).toLong()
+        return (sec * 20).toLong()
     }
 
     /** 단단한 곡괭이 판정 */
