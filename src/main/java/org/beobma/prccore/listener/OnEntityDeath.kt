@@ -2,6 +2,7 @@ package org.beobma.prccore.listener
 
 import kr.eme.prcMission.api.events.MissionEvent
 import kr.eme.prcMission.enums.MissionVersion
+import kr.eme.prcShop.api.PRCItems
 import org.beobma.prccore.manager.AdvancementManager.grantAdvancement
 import org.beobma.prccore.manager.DataManager.mines
 import org.beobma.prccore.manager.MineManager.createMonsterDropItemForFloor
@@ -14,6 +15,7 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDeathEvent
+import kotlin.random.Random
 
 class OnEntityDeath : Listener {
     @EventHandler
@@ -41,7 +43,12 @@ class OnEntityDeath : Listener {
         )
 
         markEnemyAsDead(entity)
-        val dropItem = createMonsterDropItemForFloor(mine.floor) ?: return
+        val dropItem = createMonsterDropItemForFloor(mine.floor)
+        dropItem?.let { event.drops.add(it) }
+
+        if (Random.nextDouble() < 0.15) {
+            event.drops.add(PRCItems.COFFEE_BEAN_G1.create())
+        }
         event.drops.add(dropItem)
     }
 
