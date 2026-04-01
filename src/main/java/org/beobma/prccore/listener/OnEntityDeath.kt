@@ -34,7 +34,7 @@ class OnEntityDeath : Listener {
         }
     }
 
-    private fun onEntityKillerByPlayer(event: EntityDeathEvent,killer: Player, entity: LivingEntity) {
+    private fun onEntityKillerByPlayer(event: EntityDeathEvent, killer: Player, entity: LivingEntity) {
         val mine = mines.find { it.players.contains(killer) } ?: return
         val enemy = mine.enemys.find { it.enemyUUID == entity.uniqueId.toString() } ?: return
 
@@ -47,9 +47,9 @@ class OnEntityDeath : Listener {
         dropItem?.let { event.drops.add(it) }
 
         if (Random.nextDouble() < 0.15) {
-            event.drops.add(PRCItems.COFFEE_BEAN_G1.create())
+            val coffeeItem = PRCItems.COFFEE_BEAN_G1.create()
+            event.drops.add(coffeeItem)
         }
-        event.drops.add(dropItem)
     }
 
     private fun onPlayerKillerByEntity(entity: Player) {
@@ -65,9 +65,6 @@ class OnEntityDeath : Listener {
 
     // 지형지물 등으로 인한 낙사, 추락사
     private fun onEntityKillerByNull(entity: LivingEntity) {
-        val mine = mines.find { it.enemys.any { enemy -> enemy.enemyUUID == entity.uniqueId.toString() } } ?: return
-        val enemy = mine.enemys.find { it.enemyUUID == entity.uniqueId.toString() } ?: return
-
         markEnemyAsDead(entity)
     }
 }
