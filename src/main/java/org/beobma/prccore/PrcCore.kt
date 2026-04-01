@@ -80,11 +80,12 @@ class PrcCore : JavaPlugin() {
         server.pluginManager.registerEvents(OnConsume(), this)
         server.pluginManager.registerEvents(OnPlayerExperience(), this)
         server.pluginManager.registerEvents(OnCreatureSpawn(), this)
+        server.pluginManager.registerEvents(OnEntityTransform(), this)
     }
 
     private fun registerPlants() {
-        DeadGrassPlant().register(DeadGrassPlant::class.java, 0, 0, 0, PRCItems.TOMATO_SEED, PRCItems.TOMATO_SEED, PRCItems.TOMATO_SEED, PRCItems.TOMATO_SEED)
-        WeedPlant().register(WeedPlant::class.java, 1, 2, 41, PRCItems.CRANBERRY_SEED, PRCItems.CRANBERRY_G1, PRCItems.CRANBERRY_G2, PRCItems.CRANBERRY_G3)
+        DeadGrassPlant().register(DeadGrassPlant::class.java, 0, 0, 0, PRCItems.LITHIUM, PRCItems.LITHIUM, PRCItems.LITHIUM, PRCItems.LITHIUM)
+        WeedPlant().register(WeedPlant::class.java, 1, 2, 41, PRCItems.LITHIUM, PRCItems.LITHIUM, PRCItems.LITHIUM, PRCItems.LITHIUM)
 
         PotatoPlant().register(PotatoPlant::class.java, 31, 1, 1, PRCItems.POTATO_SEED, PRCItems.POTATO_G1, PRCItems.POTATO_G2, PRCItems.POTATO_G3)
         CabbagePlant().register(CabbagePlant::class.java, 32, 2, 5, PRCItems.CABBAGE_SEED, PRCItems.CABBAGE_G1, PRCItems.CABBAGE_G2, PRCItems.CABBAGE_G3)
