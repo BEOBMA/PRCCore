@@ -385,7 +385,6 @@ object MineManager {
         // 지연 완료 후 채집 완료 처리
         Bukkit.getScheduler().runTaskLater(PrcCore.instance, Runnable {
             soundTask.cancel()
-            swingMainHand()
 
             if (cancelled) {
                 return@Runnable
@@ -408,6 +407,7 @@ object MineManager {
                 MissionEvent(this, MissionVersion.V2, "PLAYER_PROGRESS", "mine_module", 1)
             )
 
+            swingMainHand()
             resource.getItemDisplay()?.remove()
             resource.isGathering = true
             resourceInteractingPlayers.remove(resourceKey)
