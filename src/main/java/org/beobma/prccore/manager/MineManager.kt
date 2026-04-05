@@ -600,10 +600,16 @@ object MineManager {
         val start = System.currentTimeMillis()
         if (visualsSpawned) return
 
-        startBlockLocation?.block?.type = Material.BARRIER
+        val startLocation = startBlockLocation
+        if (startLocation == null) {
+            PrcCore.instance.loggerMessage("[Mine] spawnVisuals() skipped for floor $floor: startBlockLocation is null")
+            return
+        }
+
+        startLocation.block.type = Material.BARRIER
         if (floor != 1) {
             val rope = createItemDisplay(
-                startBlockLocation!!, Material.LEATHER_HORSE_ARMOR, 5,
+                startLocation, Material.LEATHER_HORSE_ARMOR, 5,
                 Vector3f(3.0f, 3.0f, 3.0f), 0.5, 1.0, 1.5
             )
             rope.itemDisplayTransform = ItemDisplay.ItemDisplayTransform.HEAD
@@ -615,7 +621,7 @@ object MineManager {
             )
             startBlockUUID = rope.uniqueId.toString()
         }
-        val marker = createExitItemDisplay(startBlockLocation!!.clone().add(0.5, 0.5, 0.5), 4) // 마커 디스플레이
+        val marker = createExitItemDisplay(startLocation.clone().add(0.5, 0.5, 0.5), 4) // 마커 디스플레이
         marker.billboard = Display.Billboard.VERTICAL
         startBlockMarker = marker.uniqueId.toString()
 
@@ -669,8 +675,19 @@ object MineManager {
     fun Mine.addResourceDisplays() {
         var displayCount = 0
         resources.filter { !it.isGathering }.forEach { resource ->
-            resource.location.block.type = Material.BARRIER
-            val itemDisplay = world.spawn(resource.location.clone().add(0.5, 0.5, 0.5), ItemDisplay::class.java)
+            val resourceLocation = resource.location
+            val resourceWorld = resourceLocation.world
+            if (resourceWorld == null) {
+                debugLog("addResourceDisplays() floor=$floor skipped resource: world is null at location=$resourceLocation")
+                return@forEach
+            }
+
+            if (!resourceLocation.chunk.isLoaded) {
+                resourceLocation.chunk.load(true)
+            }
+
+            resourceLocation.block.type = Material.BARRIER
+            val itemDisplay = resourceWorld.spawn(resourceLocation.clone().add(0.5, 0.5, 0.5), ItemDisplay::class.java)
             resource.uuidString = itemDisplay.uniqueId.toString()
 
             val itemStack = ItemStack(Material.GRAY_DYE).apply {
