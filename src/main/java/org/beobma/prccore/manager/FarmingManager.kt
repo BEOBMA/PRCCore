@@ -41,6 +41,7 @@ import org.beobma.prccore.manager.ToolManager.WEED_KILLER_CAPSULE_MODEL_DATA
 import org.beobma.prccore.manager.ToolManager.decreaseCustomDurability
 import org.beobma.prccore.plant.EatablePlants
 import org.beobma.prccore.plant.Plant
+import org.beobma.prccore.plant.list.CoffeeBeansPlant
 import org.beobma.prccore.plant.list.WeedPlant
 import org.beobma.prccore.tool.CapsuleType
 import org.bukkit.Bukkit
@@ -322,19 +323,7 @@ object FarmingManager {
             val eatablePlants = registered as? EatablePlants ?: return
             val quality = plant.quality ?: EatablePlants.QUALITY_SILVER
 
-            val food = FoodProperties.food()
-                .nutrition(eatablePlants.getNutrition(quality))
-                .saturation(eatablePlants.getSaturation(quality))
-                .build()
-            val effects = eatablePlants.getEffects(quality)
-            val consumable = Consumable.consumable()
-                .consumeSeconds(eatablePlants.getConsumeSeconds(quality))
-                .animation(ItemUseAnimation.EAT)
-                .addEffect(ConsumeEffect.applyStatusEffects(effects, 1.0f))
-                .build()
-
-            item.setData(DataComponentTypes.FOOD, food)
-            item.setData(DataComponentTypes.CONSUMABLE, consumable)
+            applyEatableComponents(item, eatablePlants, quality)
 
             val farmlandLocation = plant.farmlandLocation ?: return
             val dropLoc = farmlandLocation.clone().add(0.5, 0.5, 0.5)
@@ -367,6 +356,7 @@ object FarmingManager {
         if (!off.hasCustomModelData(CAPSULE_MODEL_DATAS, Material.ORANGE_DYE)) return
         if (status.isHarvestComplete || !status.isPlant) return
         if (status.capsuleType != CapsuleType.None) return
+        if (status.isWeeds && offCmd != WEED_KILLER_CAPSULE_MODEL_DATA) return
         if (offCmd == WEED_KILLER_CAPSULE_MODEL_DATA && plant.plantStatus.isWeeds) {
             removePlant(plant)
         }
@@ -580,5 +570,27 @@ object FarmingManager {
                     "weeds=${status.weedsCount} " +
                     "remaining=$remainingGrowthDays/$growthDays"
         )
+    }
+
+
+    private fun applyEatableComponents(item: ItemStack, eatablePlants: EatablePlants, quality: Int) {
+        val food = FoodProperties.food()
+            .nutrition(eatablePlants.getNutrition(quality))
+            .saturation(eatablePlants.getSaturation(quality))
+            .build()
+        val effects = eatablePlants.getEffects(quality)
+        val consumable = Consumable.consumable()
+            .consumeSeconds(eatablePlants.getConsumeSeconds(quality))
+            .animation(ItemUseAnimation.EAT)
+            .addEffect(ConsumeEffect.applyStatusEffects(effects, 1.0f))
+            .build()
+
+        item.setData(DataComponentTypes.FOOD, food)
+        item.setData(DataComponentTypes.CONSUMABLE, consumable)
+    }
+
+    fun makeCoffeeBeanEatable(item: ItemStack, quality: Int = EatablePlants.QUALITY_SILVER): ItemStack {
+        applyEatableComponents(item, CoffeeBeansPlant(), quality)
+        return item
     }
 }

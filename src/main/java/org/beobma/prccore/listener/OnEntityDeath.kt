@@ -5,6 +5,7 @@ import kr.eme.prcMission.enums.MissionVersion
 import kr.eme.prcShop.api.PRCItems
 import org.beobma.prccore.manager.AdvancementManager.grantAdvancement
 import org.beobma.prccore.manager.DataManager.mines
+import org.beobma.prccore.manager.FarmingManager.makeCoffeeBeanEatable
 import org.beobma.prccore.manager.MineManager.createMonsterDropItemForFloor
 import org.beobma.prccore.manager.MineManager.leaveMine
 import org.beobma.prccore.manager.MineManager.markEnemyAsDead
@@ -47,7 +48,7 @@ class OnEntityDeath : Listener {
         dropItem?.let { event.drops.add(it) }
 
         if (Random.nextDouble() < 0.15) {
-            val coffeeItem = PRCItems.COFFEE_BEAN_G1.create()
+            val coffeeItem = makeCoffeeBeanEatable(PRCItems.COFFEE_BEAN_G1.create())
             event.drops.add(coffeeItem)
         }
     }
