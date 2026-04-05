@@ -64,23 +64,23 @@ class OnPlayerInteract : Listener {
     @EventHandler
     fun onPlayerInteract(event: PlayerInteractEvent) {
         if (event.hand != EquipmentSlot.HAND) return
-        if (event.action != Action.RIGHT_CLICK_BLOCK) return
-
         val player = event.player
         val block = event.clickedBlock ?: return
+        // 광산
+        if (mines.any { it.players.contains(player) }) {
+            handleMine(player, block, event.action)
+            event.isCancelled = true
+            return
+        }
+        if (event.action != Action.RIGHT_CLICK_BLOCK) return
+
+
         val item = event.item
         val cmd = item?.getCustomModelData()
         val plantAtBlock = plantList.find { it.farmlandLocation == block.location }
         val isHoe = item?.hasCustomModelData(HOE_CUSTOM_MODEL_DATAS, Material.WOODEN_SHOVEL) ?: false
 
         if (!isHoe && block.type == Material.DIRT) {
-            event.isCancelled = true
-            return
-        }
-
-        // 광산
-        if (mines.any { it.players.contains(player) }) {
-            handleMine(player, block)
             event.isCancelled = true
             return
         }
@@ -176,12 +176,18 @@ class OnPlayerInteract : Listener {
     }
 
     /** 광산 상호작용 처리 */
-    private fun handleMine(player: Player, block: Block) {
+    private fun handleMine(player: Player, block: Block, action: Action) {
         val mine = mines.find { it.players.contains(player) } ?: return
 
         when (block) {
-            mine.exitBlockLocation?.block -> player.approach(mine, mine.floor + 1)
-            mine.startBlockLocation?.block -> player.approach(mine, 0, true)
+            mine.exitBlockLocation?.block -> {
+                if (action != Action.RIGHT_CLICK_BLOCK) return
+                player.approach(mine, mine.floor + 1)
+            }
+            mine.startBlockLocation?.block -> {
+                if (action != Action.RIGHT_CLICK_BLOCK) return
+                player.approach(mine, 0, true)
+            }
             else -> {
                 if (player.inventory.itemInMainHand.type != Material.WOODEN_SHOVEL) return
                 mines.find { it == mine }?.resources
