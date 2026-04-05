@@ -329,7 +329,7 @@ object MineManager {
         val mainHand = inventory.itemInMainHand
         if (!mainHand.hasCustomModelData(PICKAXE_MODEL_DATAS, Material.WOODEN_SHOVEL)) return
 
-        sendActionBar(miniMessage.deserialize("<key.sneak>를 누르고 있으면 채굴을 취소할 수 있습니다."))
+        sendActionBar(miniMessage.deserialize("<key:key.sneak>를 누르고 있으면 채굴을 취소할 수 있습니다."))
 
         val mine = mines.find { it.players.contains(this) } ?: return
         val delay = getGatheringDelay(mainHand, resource.resourcesType) ?: return
