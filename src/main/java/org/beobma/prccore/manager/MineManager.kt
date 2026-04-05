@@ -329,6 +329,8 @@ object MineManager {
         val mainHand = inventory.itemInMainHand
         if (!mainHand.hasCustomModelData(PICKAXE_MODEL_DATAS, Material.WOODEN_SHOVEL)) return
 
+        sendActionBar(miniMessage.deserialize("<key.sneak>를 누르고 있으면 채굴을 취소할 수 있습니다."))
+
         val mine = mines.find { it.players.contains(this) } ?: return
         val delay = getGatheringDelay(mainHand, resource.resourcesType) ?: return
         val totalTicks = delay.toDouble().coerceAtLeast(1.0)
@@ -369,7 +371,8 @@ object MineManager {
                 }
 
                 elapsedTicks = (elapsedTicks + TICKINTERVAL).coerceAtMost(totalTicks)
-                sendActionBar(miniMessage.deserialize(getGatheringProgressBar(elapsedTicks / totalTicks)))
+                showTitle(net.kyori.adventure.title.Title.title(miniMessage.deserialize(""), miniMessage.deserialize(getGatheringProgressBar(elapsedTicks / totalTicks))))
+                swingMainHand()
                 world.playSound(location, Sound.BLOCK_STONE_HIT, 1f, 1f)
                 world.spawnParticle(
                     Particle.BLOCK, resource.location.clone().add(0.5, 0.5, 0.5), 10,
