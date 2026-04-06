@@ -29,7 +29,7 @@ dependencies {
     compileOnly("com.github.mireu9275:PRCMission:v1.0.8")
     compileOnly("com.github.mireu9275:PRCShop:v1.1.1")
     compileOnly(files("libs/CoreFrame-1.0-SNAPSHOT.jar"))
-    compileOnly(files("libs/Module-0.9.9.jar"))
+    compileOnly(files("libs/Module-1.0.5.jar"))
 }
 
 def targetJavaVersion = 21

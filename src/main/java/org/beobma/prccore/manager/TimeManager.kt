@@ -146,6 +146,7 @@ object TimeManager {
             if (!ModuleAPI.isInsideModule(player)) {
                 if (player.gameMode != GameMode.CREATIVE) {
                     player.teleport(exitLocation)
+                    ModuleAPI.restoreGravity(player)
                 }
             }
 
