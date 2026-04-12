@@ -42,6 +42,7 @@ import org.beobma.prccore.manager.ToolManager.decreaseCustomDurability
 import org.beobma.prccore.plant.EatablePlants
 import org.beobma.prccore.plant.Plant
 import org.beobma.prccore.plant.list.CoffeeBeansPlant
+import org.beobma.prccore.plant.list.PotatoPlant
 import org.beobma.prccore.plant.list.WeedPlant
 import org.beobma.prccore.tool.CapsuleType
 import org.bukkit.Bukkit
@@ -331,7 +332,9 @@ object FarmingManager {
             dropped?.pickupDelay = 0
 
             // 작물 200개 수확
-            addAdvancementInt(this, "module/normal/frederick_the_great", 200)
+            if (plant is PotatoPlant) {
+                addAdvancementInt(this, "module/normal/frederick_the_great", 200)
+            }
         }
 
         if (plant.harvestAmountMin != plant.harvestAmountMax) {
