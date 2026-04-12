@@ -331,9 +331,9 @@ object FarmingManager {
             val dropped = dropLoc.world?.dropItem(dropLoc, item)
             dropped?.pickupDelay = 0
 
-            // 작물 200개 수확
+            // 작물 500개 수확
             if (plant is PotatoPlant) {
-                addAdvancementInt(this, "module/normal/frederick_the_great", 200)
+                addAdvancementInt(this, "module/normal/frederick_the_great", 500)
             }
         }
 
