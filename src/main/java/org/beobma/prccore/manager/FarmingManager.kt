@@ -378,7 +378,7 @@ object FarmingManager {
         if (off.amount > 0) off.amount -= 1
 
         // 미션
-        fireMission(MissionVersion.V2, "FARMING", "farming_module", 1)
+        fireMission(MissionVersion.V1, "FARMING", "farming_module", 1)
     }
 
     /** 물 주기 여부 */
