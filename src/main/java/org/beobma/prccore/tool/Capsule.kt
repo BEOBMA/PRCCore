@@ -1,6 +1,7 @@
 package org.beobma.prccore.tool
 
 import net.kyori.adventure.text.minimessage.MiniMessage
+import org.beobma.prccore.manager.ToolManager.setMaxCustomDurability
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 
@@ -54,4 +55,7 @@ class Capsule {
     }
 
     val capsules = hashSetOf(weedKillerCapsule, nutrientCapsule, growthCapsule)
+    init {
+        capsuleGun.setMaxCustomDurability(150)
+    }
 }

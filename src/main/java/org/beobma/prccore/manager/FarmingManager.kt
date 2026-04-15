@@ -376,7 +376,7 @@ object FarmingManager {
             playSound(it, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f)
         }
         if (off.amount > 0) off.amount -= 1
-
+        hand.decreaseCustomDurability(1, this)
         // 미션
         fireMission(MissionVersion.V1, "FARMING", "farming_module", 1)
     }
