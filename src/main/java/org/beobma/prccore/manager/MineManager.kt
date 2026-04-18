@@ -63,12 +63,13 @@ object MineManager {
      */
     private val floorResourceRules = listOf(
         FloorResourceRule(1..8, listOf(
-            WeightedResource(Magnesium, 33),
-            WeightedResource(Aluminum, 67)
+            WeightedResource(Magnesium, 50),
+            WeightedResource(Aluminum, 35),
+            WeightedResource(Iron, 15)
         )),
         FloorResourceRule(9..16, listOf(
-            WeightedResource(Magnesium, 31),
-            WeightedResource(Aluminum, 30),
+            WeightedResource(Magnesium, 25),
+            WeightedResource(Aluminum, 35),
             WeightedResource(Iron, 40)
         )),
         FloorResourceRule(17..24, listOf(
