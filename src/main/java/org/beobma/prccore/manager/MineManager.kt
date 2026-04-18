@@ -431,8 +431,10 @@ object MineManager {
 
             val gathered = mine.resources.count { it.isGathering }
             val per = 0.4
-            // 출구가 등장할 비율
-            if (mine.exitBlockLocation == null && gathered >= ceil(mine.resources.size * per).toInt()) {
+            val reachedProgressThreshold = gathered >= ceil(mine.resources.size * per).toInt()
+            val randomExitTriggered = Random.nextDouble() <= 0.1
+            // 출구가 등장할 비율 (40% 진행 or 채굴 시도마다 10% 확률)
+            if (mine.exitBlockLocation == null && (reachedProgressThreshold || randomExitTriggered)) {
                 if (mine.floor < MAX_MINE_FLOOR) {
                     if (resource.location.block.getRelative(BlockFace.DOWN).type != Material.AIR) {
                         resource.location.block.setExit(mine)
