@@ -46,6 +46,7 @@ import org.beobma.prccore.plant.list.PotatoPlant
 import org.beobma.prccore.plant.list.WeedPlant
 import org.beobma.prccore.tool.CapsuleType
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.Particle
 import org.bukkit.Sound
@@ -72,6 +73,7 @@ object FarmingManager {
     private const val MODEL_DEAD_GRASS = 42
     private const val WATER_PARTICLE = 10
 
+    private val pendingWaterMissionFarmlands = hashSetOf<Location>()
     /** 3×3 */
     private inline fun forEach3x3(origin: Block, crossinline action: (Block) -> Unit) {
         val base = origin.location
@@ -95,11 +97,11 @@ object FarmingManager {
     }
 
     /** 경작지 수분 최대 갱신 및 상호작용 등록 */
-    private fun moistenFarmland(block: Block) {
+    private fun moistenFarmland(block: Block): Location? {
         val (farmlandBlock, farmland) = when (val self = block.blockData as? Farmland) {
             null -> {
                 val below = block.getRelative(BlockFace.DOWN)
-                val belowFarmland = below.blockData as? Farmland ?: return
+                val belowFarmland = below.blockData as? Farmland ?: return null
                 below to belowFarmland
             }
             else -> block to self
@@ -112,6 +114,7 @@ object FarmingManager {
 
         interactionFarmlands.add(farmlandBlock.location)
         plantList.find { it.farmlandLocation == farmlandBlock.location }?.plantStatus?.wateredToday = true
+        return farmlandBlock.location
     }
 
     /** 아이템 디스플레이 갱신 */
@@ -180,6 +183,7 @@ object FarmingManager {
         block.type = Material.FARMLAND
         world.playSound(block.location, Sound.ITEM_HOE_TILL, 1.0f, 1.0f)
         interactionFarmlands.add(block.location)
+        pendingWaterMissionFarmlands.add(block.location)
         fireMission(MissionVersion.V2, "PLAYER_PROGRESS", "farming_module", 1)
     }
 
@@ -208,14 +212,18 @@ object FarmingManager {
         when (cmd) {
             WATERINGCAN_CUSTOM_MODEL_DATA -> {
                 world.spawnParticle(Particle.FALLING_WATER, block.location.clone().add(0.5, 1.0, 0.5), WATER_PARTICLE, 0.1, 0.1, 0.1, 1.0)
-                fireMission(MissionVersion.V1,"FARMING", "farming_module", 1)
-                moistenFarmland(block)
+                val farmlandLocation = moistenFarmland(block)
+                if (farmlandLocation != null && pendingWaterMissionFarmlands.remove(farmlandLocation)) {
+                    fireMission(MissionVersion.V1, "FARMING", "farming_module", 1)
+                }
             }
             PUMP_WATERINGCAN_CUSTOM_MODEL_DATA -> {
                 forEach3x3(block) { b ->
                     world.spawnParticle(Particle.FALLING_WATER, b.location.clone().add(0.5, 1.0, 0.5), WATER_PARTICLE, 0.1, 0.1, 0.1, 1.0)
-                    fireMission(MissionVersion.V1,"FARMING", "farming_module", 1)
-                    moistenFarmland(b)
+                    val farmlandLocation = moistenFarmland(b)
+                    if (farmlandLocation != null && pendingWaterMissionFarmlands.remove(farmlandLocation)) {
+                        fireMission(MissionVersion.V1, "FARMING", "farming_module", 1)
+                    }
                 }
             }
         }
