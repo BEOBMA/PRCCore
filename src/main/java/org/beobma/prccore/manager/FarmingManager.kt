@@ -183,7 +183,6 @@ object FarmingManager {
         block.type = Material.FARMLAND
         world.playSound(block.location, Sound.ITEM_HOE_TILL, 1.0f, 1.0f)
         interactionFarmlands.add(block.location)
-        pendingWaterMissionFarmlands.add(block.location)
         fireMission(MissionVersion.V2, "PLAYER_PROGRESS", "farming_module", 1)
     }
 
@@ -260,6 +259,7 @@ object FarmingManager {
         // 상태
         plant.farmlandLocation = block.location
         plant.plantStatus.isPlant = true
+        pendingWaterMissionFarmlands.add(block.location)
 
         // 씨앗 소모
         if (cmd == plantSeedIcons[registered]) item.amount--
@@ -281,7 +281,10 @@ object FarmingManager {
 
     /** 식물 제거 + 디스플레이 삭제 */
     fun Player.removePlant(plant: Plant) {
-        plant.farmlandLocation?.let { playSound(it, Sound.ITEM_HOE_TILL, 1.0f, 1.0f) }
+        plant.farmlandLocation?.let {
+            playSound(it, Sound.ITEM_HOE_TILL, 1.0f, 1.0f)
+            pendingWaterMissionFarmlands.remove(it)
+        }
         plantList.remove(plant)
         plant.getItemDisplay()?.remove()
     }
