@@ -64,13 +64,13 @@ object MineManager {
     private val floorResourceRules = listOf(
         FloorResourceRule(1..8, listOf(
             WeightedResource(Magnesium, 50),
-            WeightedResource(Aluminum, 35),
-            WeightedResource(Iron, 15)
+            WeightedResource(Aluminum, 40),
+            WeightedResource(Iron, 10)
         )),
         FloorResourceRule(9..16, listOf(
-            WeightedResource(Magnesium, 25),
-            WeightedResource(Aluminum, 35),
-            WeightedResource(Iron, 40)
+            WeightedResource(Magnesium, 30),
+            WeightedResource(Aluminum, 50),
+            WeightedResource(Iron, 20)
         )),
         FloorResourceRule(17..24, listOf(
             WeightedResource(Magnesium, 21),
@@ -432,7 +432,7 @@ object MineManager {
             val gathered = mine.resources.count { it.isGathering }
             val per = 0.4
             val reachedProgressThreshold = gathered >= ceil(mine.resources.size * per).toInt()
-            val randomExitTriggered = Random.nextDouble() <= 0.1
+            val randomExitTriggered = Random.nextDouble() <= 0.07
             // 출구가 등장할 비율 (40% 진행 or 채굴 시도마다 10% 확률)
             if (mine.exitBlockLocation == null && (reachedProgressThreshold || randomExitTriggered)) {
                 if (mine.floor < MAX_MINE_FLOOR) {
