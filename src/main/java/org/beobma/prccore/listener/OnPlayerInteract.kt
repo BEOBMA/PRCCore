@@ -60,6 +60,8 @@ import org.bukkit.persistence.PersistentDataType
 import java.util.UUID
 
 class OnPlayerInteract : Listener {
+    private val mineTransitionCooldownMillis = 2_000L
+    private val mineTransitionCooldowns = mutableMapOf<UUID, Long>()
 
     @EventHandler
     fun onPlayerInteract(event: PlayerInteractEvent) {
@@ -178,14 +180,19 @@ class OnPlayerInteract : Listener {
     /** 광산 상호작용 처리 */
     private fun handleMine(player: Player, block: Block, action: Action) {
         val mine = mines.find { it.players.contains(player) } ?: return
+        val now = System.currentTimeMillis()
 
         when (block) {
             mine.exitBlockLocation?.block -> {
                 if (action != Action.RIGHT_CLICK_BLOCK) return
+                if (!isMineTransitionAvailable(player.uniqueId, now)) return
+                mineTransitionCooldowns[player.uniqueId] = now
                 player.approach(mine, mine.floor + 1)
             }
             mine.startBlockLocation?.block -> {
                 if (action != Action.RIGHT_CLICK_BLOCK) return
+                if (!isMineTransitionAvailable(player.uniqueId, now)) return
+                mineTransitionCooldowns[player.uniqueId] = now
                 player.approach(mine, 0, true)
             }
             else -> {
@@ -195,6 +202,11 @@ class OnPlayerInteract : Listener {
                     ?.let { player.gathering(it) }
             }
         }
+    }
+
+    private fun isMineTransitionAvailable(playerId: UUID, now: Long): Boolean {
+        val lastInteraction = mineTransitionCooldowns[playerId] ?: return true
+        return now - lastInteraction >= mineTransitionCooldownMillis
     }
 
     /** 식물 상호작용 처리 */
