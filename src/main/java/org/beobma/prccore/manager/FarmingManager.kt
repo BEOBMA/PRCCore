@@ -213,7 +213,7 @@ object FarmingManager {
                 world.spawnParticle(Particle.FALLING_WATER, block.location.clone().add(0.5, 1.0, 0.5), WATER_PARTICLE, 0.1, 0.1, 0.1, 1.0)
                 val farmlandLocation = moistenFarmland(block)
                 if (farmlandLocation != null && pendingWaterMissionFarmlands.remove(farmlandLocation)) {
-                    fireMission(MissionVersion.V1, "FARMING", "farming_module", 1)
+                    fireMission(MissionVersion.V1, "FARMING", "farming_module", 2)
                 }
             }
             PUMP_WATERINGCAN_CUSTOM_MODEL_DATA -> {
@@ -221,7 +221,7 @@ object FarmingManager {
                     world.spawnParticle(Particle.FALLING_WATER, b.location.clone().add(0.5, 1.0, 0.5), WATER_PARTICLE, 0.1, 0.1, 0.1, 1.0)
                     val farmlandLocation = moistenFarmland(b)
                     if (farmlandLocation != null && pendingWaterMissionFarmlands.remove(farmlandLocation)) {
-                        fireMission(MissionVersion.V1, "FARMING", "farming_module", 1)
+                        fireMission(MissionVersion.V1, "FARMING", "farming_module", 2)
                     }
                 }
             }
@@ -260,6 +260,7 @@ object FarmingManager {
         plant.farmlandLocation = block.location
         plant.plantStatus.isPlant = true
         pendingWaterMissionFarmlands.add(block.location)
+        fireMission(MissionVersion.V1, "FARMING", "farming_module", 1)
 
         // 씨앗 소모
         if (cmd == plantSeedIcons[registered]) item.amount--
