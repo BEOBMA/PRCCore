@@ -100,7 +100,5 @@ class PrcCore : JavaPlugin() {
     }
 
 
-    fun loggerMessage(msg: String) {
-        logger.info("[PrcCore] $msg")
-    }
+    fun loggerMessage(@Suppress("UNUSED_PARAMETER") msg: String) = Unit
 }
