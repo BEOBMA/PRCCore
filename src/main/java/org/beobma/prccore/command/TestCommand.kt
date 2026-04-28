@@ -22,6 +22,11 @@ class TestCommand: CommandExecutor {
     private val mm = MiniMessage.miniMessage()
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
+        if (!sender.isOp) {
+            sender.sendMessage(mm.deserialize("<red>OP만 사용할 수 있습니다.</red>"))
+            return true
+        }
+
         if (args.isEmpty()) {
             sender.sendMessage("/prctest <timeflow|nextday|clearores|killmobs|setmineprogress>")
             return true
