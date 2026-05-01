@@ -40,7 +40,7 @@ class OnEntityDeath : Listener {
         val enemy = mine.enemys.find { it.enemyUUID == entity.uniqueId.toString() } ?: return
 
         Bukkit.getPluginManager().callEvent(
-            MissionEvent(killer, MissionVersion.V2, "PLAYER_PROGRESS", "mine_module", 1)
+            MissionEvent(killer, MissionVersion.V2, "PLAYER_PROGRESS_KILL", "mine_module", 1)
         )
 
         markEnemyAsDead(entity)
