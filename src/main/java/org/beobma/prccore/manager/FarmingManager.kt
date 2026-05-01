@@ -261,6 +261,7 @@ object FarmingManager {
         plant.plantStatus.isPlant = true
         pendingWaterMissionFarmlands.add(block.location)
         fireMission(MissionVersion.V1, "FARMING", "farming_module", 1)
+        fireMission(MissionVersion.V2, "FARMING", "farming_module", 1)
 
         // 씨앗 소모
         if (cmd == plantSeedIcons[registered]) item.amount--
