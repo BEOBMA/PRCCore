@@ -13,6 +13,6 @@ commands:
     permission: prccore.command.prctest
 permissions:
   prccore.command.starttimeflow:
-    default: op
+    default: false
   prccore.command.prctest:
-    default: op
+    default: false

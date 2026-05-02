@@ -18,12 +18,14 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
+private val ALLOWED_COMMAND_PLAYERS = setOf("sem1colon", "RePl0nlinE")
+
 class TestCommand: CommandExecutor {
     private val mm = MiniMessage.miniMessage()
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
-        if (!sender.isOp) {
-            sender.sendMessage(mm.deserialize("<red>OP만 사용할 수 있습니다.</red>"))
+        val commandPlayer = sender as? Player
+        if (commandPlayer == null || commandPlayer.name !in ALLOWED_COMMAND_PLAYERS) {
             return true
         }
 
